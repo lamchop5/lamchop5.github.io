@@ -108,14 +108,15 @@
                 // --------------------------------------------
 
                 // Render processed matrix ('dst') to the HTML canvas
-                cv.imshow('canvasOutput', dst);
+                //cv.imshow('canvasOutput', dst);
                 
                 frameCounter++;
                 counterDisplay.innerText = frameCounter;
                 
                 // Calculate delay to lock processing to the video's frame rate
-                let delay = (1000 / FPS / 2) - (Date.now() - begin);
-                setTimeout(processVideo, Math.max(0, delay));
+                //let delay = (1000 / FPS / 2) - (Date.now() - begin);
+                //setTimeout(processVideo, Math.max(0, delay));
+                setTimeout(processVideo, 0);
                 
             } catch (err) {
                 console.error("OpenCV Error: ", err);
