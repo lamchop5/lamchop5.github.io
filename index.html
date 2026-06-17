@@ -25,6 +25,8 @@
         <!-- Canvas where OpenCV.js renders the processed frames -->
         <canvas id="canvasOutput" width="640" height="480"></canvas>
     </div>
+    <!-- Counter display -->
+    <p>Current Frame: <span id="frameCount">0</span></p>
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
@@ -71,14 +73,14 @@
                 if (src) src.delete();
                 if (dst) dst.delete();
                 
-                src = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC4);
-                dst = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC1); // CV_8UC1 for Grayscale
-                cap = new cv.VideoCapture(video);
+                //src = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC4);
+                //dst = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC1); // CV_8UC1 for Grayscale
+                //cap = new cv.VideoCapture(video);
                 
                 // Start playing and processing
-                video.play();
-                isProcessing = true;
-                setTimeout(processVideo, 0);
+                //video.play();
+                //isProcessing = true;
+                //setTimeout(processVideo, 0);
             };
         });
 
