@@ -1,16 +1,3 @@
-let video = document.getElementById('videoElement');
-let fileInput = document.getElementById('videoUpload');
-let loadingText = document.getElementById('loading');
-
-let cap = null;
-let src = null;
-let dst = null;
-let isProcessing = false;
-
-const FPS = 30;
-// height to resize template and master template to
-const templateHeight = 48;
-
 // x mapping for Alibaba-PuHuiTi-Heavy.ttf
 const characterTableEng = [
     { min: 8, max: 28, char: '0' },
@@ -30,80 +17,6 @@ const characterTableEng = [
     { min: 797, max: 817, char: 'Q' },
     { min: 889, max: 909, char: '.' }
 ];
-
-// 1. Triggered when OpenCV.js is fully loaded and ready
-function onOpenCvReady() {
-    loadingText.innerText = "OpenCV.js is ready! Upload a video.";
-    loadingText.style.color = "green";
-    fileInput.disabled = false;
-}
-
-// 2. Handle file selection and video playback
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Create local URL for the uploaded video file
-    const fileURL = URL.createObjectURL(file);
-    video.src = fileURL;
-    
-    // Stop any previous processing loops safely
-    isProcessing = false; 
-
-    // Wait for video metadata to load so dimensions are correct
-    video.onloadedmetadata = () => {
-        video.width = video.videoWidth;
-        video.height = video.videoHeight;
-        document.getElementById('canvasOutput').width = video.videoWidth;
-        document.getElementById('canvasOutput').height = video.videoHeight;
-        
-        // Initialize OpenCV matrices with matching dimensions
-        if (src) src.delete();
-        if (dst) dst.delete();
-        
-        src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-        dst = new cv.Mat(video.height, video.width, cv.CV_8UC1); // CV_8UC1 for Grayscale
-        cap = new cv.VideoCapture(video);
-        
-        // Start playing and processing
-        video.play();
-        isProcessing = true;
-        setTimeout(processVideo, 0);
-    };
-});
-
-// 3. The OpenCV.js processing loop
-function processVideo() {
-    if (!isProcessing || video.paused || video.ended) {
-        return;
-    }
-
-    try {
-        let begin = Date.now();
-        
-        // Read current frame from video into 'src' Matrix
-        cap.read(src);
-        
-        // --- YOUR OPENCV.JS PROCESSING GOES HERE ---
-        // Example: Convert frame to Grayscale
-        cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-        
-        // Example: Apply Canny Edge Detection (uncomment to try)
-        // cv.Canny(src, dst, 50, 100, 3, false);
-        // --------------------------------------------
-
-        // Render processed matrix ('dst') to the HTML canvas
-        cv.imshow('canvasOutput', dst);
-        
-        // Calculate delay to lock processing to the video's frame rate
-        let delay = (1000 / FPS) - (Date.now() - begin);
-        setTimeout(processVideo, Math.max(0, delay));
-        
-    } catch (err) {
-        console.error("OpenCV Error: ", err);
-        isProcessing = false;
-    }
-}
 
 function getChar(input) {
     // helper function to lookup character mapping from templatematching results
