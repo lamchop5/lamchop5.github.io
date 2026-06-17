@@ -2,24 +2,119 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OpenCV Video Processor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenCV.js Video Processor</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; }
+        .container { margin-top: 20px; }
+        canvas { border: 1px solid #ccc; max-width: 100%; }
+        #loading { color: red; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <input type="file" id="videoUpload" accept="video/mp4,video/avi,video/quicktime">
-    <video id="videoElement" width="640" height="480" controls style="display:none;"></video>
+
+    <h2>OpenCV.js Drop-in Video Processor</h2>
+    <p id="loading">Loading OpenCV.js...</p>
+
+    <!-- File Input -->
+    <input type="file" id="videoUpload" accept="video/*" disabled>
     
+    <div class="container">
+        <!-- Hidden video element used as the data source -->
+        <video id="videoElement" width="640" height="480" loop muted playsinline style="display:none;"></video>
+        <!-- Canvas where OpenCV.js renders the processed frames -->
+        <canvas id="canvasOutput" width="640" height="480"></canvas>
+    </div>
+
+    <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
-        document.getElementById('videoUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const videoNode = document.getElementById('videoElement');
+        let video = document.getElementById('videoElement');
+        let fileInput = document.getElementById('videoUpload');
+        let loadingText = document.getElementById('loading');
+        
+        let cap = null;
+        let src = null;
+        let dst = null;
+        let isProcessing = false;
+        const FPS = 30;
+
+        // 1. Triggered when OpenCV.js is fully loaded and ready
+        function onOpenCvReady() {
+            loadingText.innerText = "OpenCV.js is ready! Upload a video.";
+            loadingText.style.color = "green";
+            fileInput.disabled = false;
+        }
+
+        // 2. Handle file selection and video playback
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Create local URL for the uploaded video file
             const fileURL = URL.createObjectURL(file);
+            video.src = fileURL;
             
-            videoNode.src = fileURL;
-            videoNode.style.display = 'block';
-            videoNode.play();
-            
-            // Pass this fileURL to your OpenCV.js processing function here
+            // Stop any previous processing loops safely
+            isProcessing = false; 
+
+            // Wait for video metadata to load so dimensions are correct
+            video.onloadedmetadata = () => {
+                video.width = video.videoWidth;
+                video.height = video.videoHeight;
+                document.getElementById('canvasOutput').width = video.videoWidth;
+                document.getElementById('canvasOutput').height = video.videoHeight;
+                
+                // Initialize OpenCV matrices with matching dimensions
+                if (src) src.delete();
+                if (dst) dst.delete();
+                
+                src = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC4);
+                dst = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC1); // CV_8UC1 for Grayscale
+                cap = new cv.VideoCapture(video);
+                
+                // Start playing and processing
+                video.play();
+                isProcessing = true;
+                setTimeout(processVideo, 0);
+            };
         });
+
+        // 3. The OpenCV.js processing loop
+        function processVideo() {
+            if (!isProcessing || video.paused || video.ended) {
+                return;
+            }
+
+            try {
+                let begin = Date.now();
+                
+                // Read current frame from video into 'src' Matrix
+                cap.read(src);
+                
+                // --- YOUR OPENCV.JS PROCESSING GOES HERE ---
+                // Example: Convert frame to Grayscale
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+                
+                // Example: Apply Canny Edge Detection (uncomment to try)
+                // cv.Canny(src, dst, 50, 100, 3, false);
+                // --------------------------------------------
+
+                // Render processed matrix ('dst') to the HTML canvas
+                cv.imshow('canvasOutput', dst);
+                
+                // Calculate delay to lock processing to the video's frame rate
+                let delay = (1000 / FPS) - (Date.now() - begin);
+                setTimeout(processVideo, Math.max(0, delay));
+                
+            } catch (err) {
+                console.error("OpenCV Error: ", err);
+                isProcessing = false;
+            }
+        }
     </script>
+
+    <!-- Async load OpenCV.js from a reliable CDN -->
+    <script async src="https://opencv.org" onload="onOpenCvReady();" type="text/javascript"></script>
+
 </body>
 </html>
