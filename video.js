@@ -1,4 +1,3 @@
-let imgElement = document.getElementById('imageSrc');
 let inputElement = document.getElementById('fileInput');
 let canvasOutput = document.getElementById('canvasOutput');
 let templateElement = document.getElementById('templateImageSrc');
