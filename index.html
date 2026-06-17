@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenCV Video Processor</title>
+</head>
+<body>
+    <input type="file" id="videoUpload" accept="video/mp4,video/avi,video/quicktime">
+    <video id="videoElement" width="640" height="480" controls style="display:none;"></video>
+    
+    <script>
+        document.getElementById('videoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const videoNode = document.getElementById('videoElement');
+            const fileURL = URL.createObjectURL(file);
+            
+            videoNode.src = fileURL;
+            videoNode.style.display = 'block';
+            videoNode.play();
+            
+            // Pass this fileURL to your OpenCV.js processing function here
+        });
+    </script>
+</body>
+</html>
