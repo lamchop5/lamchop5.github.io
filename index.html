@@ -74,9 +74,11 @@
                 if (dst) dst.delete();
                 
                 src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-                //dst = new cv.Mat(video.height, video.width, cv.CV_8UC1); // CV_8UC1 for Grayscale
-                //cap = new cv.VideoCapture(video);
-                
+                dst = new cv.Mat(video.height, video.width, cv.CV_8UC1); // CV_8UC1 for Grayscale
+                cap = new cv.VideoCapture(video);
+                // Initialize your framework counter variable
+                let frameCounter = 0;
+                const counterDisplay = document.getElementById('frameCount');
                 // Start playing and processing
                 //video.play();
                 //isProcessing = true;
