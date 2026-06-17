@@ -113,7 +113,7 @@
                 counterDisplay.innerText = frameCounter;
                 
                 // Calculate delay to lock processing to the video's frame rate
-                let delay = (1000 / FPS) - (Date.now() - begin);
+                let delay = (1000 / FPS / 2) - (Date.now() - begin);
                 setTimeout(processVideo, Math.max(0, delay));
                 
             } catch (err) {
@@ -125,6 +125,7 @@
 
     <!-- Async load OpenCV.js from a reliable CDN -->
     <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();"></script>
+    <script src="video.js"></script>
 
 </body>
 </html>
