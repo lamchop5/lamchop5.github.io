@@ -1,7 +1,13 @@
-let inputElement = document.getElementById('fileInput');
-let canvasOutput = document.getElementById('canvasOutput');
-let templateElement = document.getElementById('templateImageSrc');
+let video = document.getElementById('videoElement');
+let fileInput = document.getElementById('videoUpload');
+let loadingText = document.getElementById('loading');
 
+let cap = null;
+let src = null;
+let dst = null;
+let isProcessing = false;
+
+const FPS = 30;
 // height to resize template and master template to
 const templateHeight = 48;
 
@@ -25,13 +31,77 @@ const characterTableEng = [
     { min: 889, max: 909, char: '.' }
 ];
 
-// Function called when OpenCV.js is ready
+// 1. Triggered when OpenCV.js is fully loaded and ready
 function onOpenCvReady() {
-    document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+    loadingText.innerText = "OpenCV.js is ready! Upload a video.";
+    loadingText.style.color = "green";
+    fileInput.disabled = false;
+}
+
+// 2. Handle file selection and video playback
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Create local URL for the uploaded video file
+    const fileURL = URL.createObjectURL(file);
+    video.src = fileURL;
     
-    // Use a default image if none is provided via file input
-    if (!imgElement.src) {
-        imgElement.src = 'https://docs.opencv.org';
+    // Stop any previous processing loops safely
+    isProcessing = false; 
+
+    // Wait for video metadata to load so dimensions are correct
+    video.onloadedmetadata = () => {
+        video.width = video.videoWidth;
+        video.height = video.videoHeight;
+        document.getElementById('canvasOutput').width = video.videoWidth;
+        document.getElementById('canvasOutput').height = video.videoHeight;
+        
+        // Initialize OpenCV matrices with matching dimensions
+        if (src) src.delete();
+        if (dst) dst.delete();
+        
+        src = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC4);
+        dst = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC1); // CV_8UC1 for Grayscale
+        cap = new cv.VideoCapture(video);
+        
+        // Start playing and processing
+        video.play();
+        isProcessing = true;
+        setTimeout(processVideo, 0);
+    };
+});
+
+// 3. The OpenCV.js processing loop
+function processVideo() {
+    if (!isProcessing || video.paused || video.ended) {
+        return;
+    }
+
+    try {
+        let begin = Date.now();
+        
+        // Read current frame from video into 'src' Matrix
+        cap.read(src);
+        
+        // --- YOUR OPENCV.JS PROCESSING GOES HERE ---
+        // Example: Convert frame to Grayscale
+        cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+        
+        // Example: Apply Canny Edge Detection (uncomment to try)
+        // cv.Canny(src, dst, 50, 100, 3, false);
+        // --------------------------------------------
+
+        // Render processed matrix ('dst') to the HTML canvas
+        cv.imshow('canvasOutput', dst);
+        
+        // Calculate delay to lock processing to the video's frame rate
+        let delay = (1000 / FPS) - (Date.now() - begin);
+        setTimeout(processVideo, Math.max(0, delay));
+        
+    } catch (err) {
+        console.error("OpenCV Error: ", err);
+        isProcessing = false;
     }
 }
 
@@ -323,85 +393,3 @@ function getSkillDamages(image) {
     return numContours
     //return dst;
 }
-
-function getLaserPercent(image) {
-    // green bar color = rgba(158,248,0,255)
-    // lowthresh=np.array([150,240,0])
-    // highthresh=np.array([180,255,80])
-    let green_filtered = new cv.Mat();
-    green_filtered = filterImage(image, [165,247,40,128],[15,8,40,128]);
- 
-    // yellow rgba(243,230,1,255)
-    // lowthresh=np.array([245,210,0])
-    // highthresh=np.array([255,235,80])
-    let yellow_filtered = new cv.Mat();
-    yellow_filtered = filterImage(image, [250,223,40,128],[5,13,40,128]);
-
-    // assumes white bg, black contours
-    let dst = new cv.Mat();
-    cv.bitwise_not(green_filtered, dst);
-
-    // Find all contours
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-    cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-    let maxGreenWidth = 0;
-
-    for (let i = 0; i < contours.size(); i++) {
-        let contour = contours.get(i);
-        let boundingRect = cv.boundingRect(contour);
-        if (boundingRect.width > maxGreenWidth) {
-            maxGreenWidth = boundingRect.width;
-        }
-    }
-
-    cv.bitwise_not(yellow_filtered, dst);
-    cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-    let maxYellowWidth = 0;
-
-    for (let i = 0; i < contours.size(); i++) {
-        let contour = contours.get(i);
-        let boundingRect = cv.boundingRect(contour);
-        if (boundingRect.width > maxYellowWidth) {
-            maxYellowWidth = boundingRect.width;
-        }
-    }
-
-    green_filtered.delete();
-    yellow_filtered.delete();
-    dst.delete();
-    contours.delete();
-    hierarchy.delete();
-
-    const laserPercent = (maxGreenWidth+maxYellowWidth)/maxYellowWidth
-    document.getElementById('laserPercentText').innerHTML = 'Moonscar multi: '+laserPercent.toFixed(2)+'x';
-}
-
-// Function to process the image once it is loaded into the <img> element
-imgElement.onload = function() {
-    let src = cv.imread(imgElement);
-    
-    // get skill damage portion of screenshot and crop
-    let dmgWindowCrop = new cv.Mat();
-    dmgWindowCrop = getDamageWindow(src);
-
-    // determine moonscar bracer multi, 1x = vgloves
-    getLaserPercent(dmgWindowCrop)
-
-    //
-    document.getElementById('canvasOutputText').innerHTML = 'Skill Damages: '+getSkillDamages(dmgWindowCrop);
-    cv.imshow('canvasOutput', dmgWindowCrop);
-
-
-    src.delete();
-    dmgWindowCrop.delete();
-};
-
-// Handle file input changes to load user-selected images
-inputElement.addEventListener('change', (e) => {
-    imgElement.src = URL.createObjectURL(e.target.files[0]);
-}, false);
-
-// Load OpenCV.js and wait for it to be ready
-//cv.onRuntimeInitialized = onOpenCvReady;
