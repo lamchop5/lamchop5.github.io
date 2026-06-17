@@ -61,8 +61,8 @@ fileInput.addEventListener('change', (e) => {
         if (src) src.delete();
         if (dst) dst.delete();
         
-        src = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC4);
-        dst = new cv.Mat(video.height, video.width, cv.cvtype.CV_8UC1); // CV_8UC1 for Grayscale
+        src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        dst = new cv.Mat(video.height, video.width, cv.CV_8UC1); // CV_8UC1 for Grayscale
         cap = new cv.VideoCapture(video);
         
         // Start playing and processing
