@@ -42,6 +42,7 @@
         let src = null;
         let dst = null;
         let isProcessing = false;
+        let timeouId = null;
         const FPS = 30;
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
@@ -86,14 +87,14 @@
                 // Start playing and processing
                 video.play();
                 isProcessing = true;
-                setTimeout(processVideo, 0);
+                timeoutID = setTimeout(processVideo, 0);
             };
         });
 
         // 3. The OpenCV.js processing loop
         function processVideo() {
-            if (video.ended) {
-                isProcessing = false;
+            if (!isProcessing || video.ended) {
+                stopLoop();
                 return;
             }
 
@@ -120,12 +121,30 @@
                 // Calculate delay to lock processing to the video's frame rate
                 //let delay = (1000 / FPS / 2) - (Date.now() - begin);
                 //setTimeout(processVideo, Math.max(0, delay));
-                setTimeout(processVideo, 0);
+                timeoutID = setTimeout(processVideo, 0);
                 
             } catch (err) {
                 console.error("OpenCV Error: ", err);
                 isProcessing = false;
             }
+        }
+        
+        function stopLoop() {
+            // Prevent any scheduled future iterations
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+                isProcessing = false;
+            }
+            
+            // Free OpenCV.js WASM heap memory allocated to the matrix structure
+            if (src && !src.isDeleted()) {
+                src.delete();
+            }
+            if (dst && !dst.isDeleted()) {
+                dst.delete();
+            }
+            console.log("OpenCV.js video loop cleanly terminated.");
         }
     </script>
 
