@@ -73,7 +73,7 @@
                 document.getElementById('canvasOutput').width = video.videoWidth;
                 document.getElementById('canvasOutput').height = video.videoHeight;
 
-                const metadata = await getMediaMetadata(fileURL);
+                const metadata = getMediaMetadata(fileURL);
                 console.log(metadata.fps); // Outputs the actual metadata frame rate
 
                 // Initialize OpenCV matrices with matching dimensions
