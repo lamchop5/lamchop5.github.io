@@ -30,8 +30,6 @@
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
-        import { getMediaMetadata } from 'mediabunny';
-
         let video = document.getElementById('videoElement');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
@@ -133,6 +131,7 @@
 
     <!-- Async load OpenCV.js from a reliable CDN -->
     <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();"></script>
+    <script src="https://jsdelivr.net"></script>
     <script src="video.js"></script>
 
 </body>
