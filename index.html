@@ -89,13 +89,13 @@
 
         // 3. The OpenCV.js processing loop
         function processVideo() {
-            if (!isProcessing || video.paused || video.ended) {
+            if (video.ended) {
                 isProcessing = false;
                 return;
             }
 
             try {
-                let begin = Date.now();
+                //let begin = Date.now();
                 
                 // Read current frame from video into 'src' Matrix
                 cap.read(src);
