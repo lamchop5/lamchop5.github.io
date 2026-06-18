@@ -106,8 +106,8 @@
                 dst.delete();
                 return;
             }
-            frameCounter += 1
-            counterDisplay.innerHTML = frameCounter
+            frameCounter++;
+            counterDisplay.innerText = frameCounter;
             
             // Draw the current video frame onto the hidden canvas
             ctx.drawImage(video, 0, 0, video.width, video.height);
