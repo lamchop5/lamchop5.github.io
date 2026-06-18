@@ -30,6 +30,8 @@
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
+        import { getMediaMetadata } from 'mediabunny';
+
         let video = document.getElementById('videoElement');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
@@ -72,7 +74,10 @@
                 video.height = video.videoHeight;
                 document.getElementById('canvasOutput').width = video.videoWidth;
                 document.getElementById('canvasOutput').height = video.videoHeight;
-                
+
+                const metadata = await getMediaMetadata(fileURL);
+                console.log(metadata.fps); // Outputs the actual metadata frame rate
+
                 // Initialize OpenCV matrices with matching dimensions
                 if (src) src.delete();
                 if (dst) dst.delete();
