@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenCV.js Video Processor</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; }
+        .container { margin-top: 20px; }
+        canvas { border: 1px solid #ccc; max-width: 100%; }
+        #loading { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>OpenCV.js Drop-in Video Processor</h2>
+    <p id="loading">Loading OpenCV.js...</p>
+
+    <!-- File Input -->
+    <input type="file" id="videoUpload" accept="video/*" disabled>
+    
+    <div class="container">
+        <!-- Hidden video element used as the data source -->
+        <video id="videoElement" width="640" height="480" muted playsinline style="display:none;"></video>
+        <!-- Canvas where OpenCV.js renders the processed frames -->
+        <canvas id="canvasOutput" width="640" height="480"></canvas>
+    </div>
+    <!-- Counter display -->
+    <p>Current Frame: <span id="frameCount">0</span></p>
+
+    <!-- Script to handle Video and OpenCV.js Logic -->
+    <script>
+        (function() {
+            const originalGetContext = HTMLCanvasElement.prototype.getContext;
+            HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+                if (type === '2d') {
+                    attributes = attributes || {};
+                    attributes.willReadFrequently = true;
+                }
+                return originalGetContext.call(this, type, attributes);
+            };
+        })();
+        
+        let video = document.getElementById('videoElement');
+        let fileInput = document.getElementById('videoUpload');
+        let loadingText = document.getElementById('loading');
+        
+        const offscreenCanvas = document.createElement('canvas');
+        const ctx = offscreenCanvas.getContext('2d');
+        
+        let canvas = document.getElementById('canvasOutput');
+        // Initialize your framework counter variable
+        let frameCounter = 0;
+        const counterDisplay = document.getElementById('frameCount');
+        
+        let src = null;
+        let dst = null;
+        let isProcessing = false;
+
+        // 1. Triggered when OpenCV.js is fully loaded and ready
+        function onOpenCvReady() {
+            // Wait for the runtime to finish initialization
+            cv['onRuntimeInitialized'] = () => {
+                loadingText.innerText = "OpenCV.js is ready! Upload a video.";
+                loadingText.style.color = "green";
+                fileInput.disabled = false;
+            }        
+        }
+        function processNextFrame() {
+            // Stop processing if the video has ended
+            if (video.ended) {
+                // Clean up matrices when finished to prevent memory leaks
+                src.delete();
+                dst.delete();
+                return;
+            }
+            frameCounter++;
+            counterDisplay.innerText = frameCounter;
+            
+            // Draw the current video frame onto the hidden canvas
+            ctx.drawImage(video, 0, 0, video.width, video.height);
+        
+            // Grab the pixel data from the canvas
+            const imgData = ctx.getImageData(0, 0, video.width, video.height);
+        
+            // Load pixel data directly into the OpenCV Matrix
+            src.data.set(imgData.data);
+        
+            // ==========================================
+            // PLACE YOUR OPENCV.JS IMAGE PROCESSING HERE
+            // Example: Convert to Grayscale
+            // cv.cvtColor(srcMat, processedMat, cv.COLOR_RGBA2GRAY, 0);
+            // ==========================================
+        
+            // Request the next frame (processes at browser render rates ~60fps)
+            requestAnimationFrame(processNextFrame);
+        };
+
+        // 2. Handle file selection and video playback
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Create local URL for the uploaded video file
+            const fileURL = URL.createObjectURL(file);
+            video.src = fileURL;
+            
+            // Stop any previous processing loops safely
+            isProcessing = false; 
+
+            // Wait for video metadata to load so dimensions are correct
+            video.onloadedmetadata = () => {
+                video.width = video.videoWidth;
+                video.height = video.videoHeight;
+                offscreenCanvas.width = video.width;
+                offscreenCanvas.height = video.height;
+
+                // Initialize OpenCV matrices with matching dimensions
+                if (src) src.delete();
+                if (dst) dst.delete();
+                
+                src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+                dst = new cv.Mat(video.height, video.width, cv.CV_8UC4); // CV_8UC1 for Grayscale
+
+                isProcessing = true;
+                requestAnimationFrame(processNextFrame);
+            };
+        });
+        
+    </script>
+
+    <!-- Async load OpenCV.js from a reliable CDN -->
+    <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();"></script>
+    <script src="video.js"></script>
+
+</body>
+</html>
