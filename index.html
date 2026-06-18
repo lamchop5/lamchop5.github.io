@@ -73,22 +73,14 @@
                     dst.delete();
                     return;
                 }
-            
-                // --- Perform your OpenCV.js operations here ---
-                // cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                // cv.imshow('canvasOutput', dst);
-                // Advance 4x (1 frame processed, 3 skipped)
-                let frameSkip = 4
-                for(let i =0; i<frameSkip; i++) {
-                    if (frameIndex % frameSkip == 0 ) {
-                        // process frame
-                        counterDisplay.innerText = frameIndex;
-                        cap.read(src);
-                    } else {
-                        // skip frame
-                        cap.grab();
-                    }
-                    frameIndex++;
+                frameIndex++;
+                if (frameIndex % frameSkip == 0 ) {
+                    // process frame
+                    counterDisplay.innerText = frameIndex;
+                    cap.read(src);
+                } else {
+                    // skip frame
+                    cap.read();
                 }
                 // schedule next frame
                 requestAnimationFrame(processFrame);
@@ -130,7 +122,9 @@
     </script>
 
     <!-- Async load OpenCV.js from a reliable CDN -->
-    <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();"></script>
+    <!-- <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();"></script> -->
+
+    <script src="https://github.com/CezaryDanielNowak/fast-opencv-wasm/blob/master/opencv.js" onload="onOpenCvReady();"></script>
     <script src="video.js"></script>
 
 </body>
