@@ -30,20 +30,32 @@
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
+        (function() {
+            const originalGetContext = HTMLCanvasElement.prototype.getContext;
+            HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+                if (type === '2d') {
+                    attributes = attributes || {};
+                    attributes.willReadFrequently = true;
+                }
+                return originalGetContext.call(this, type, attributes);
+            };
+        })();
+        
         let video = document.getElementById('videoElement');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
+        
+        const offscreenCanvas = document.createElement('canvas');
+        const ctx = offscreenCanvas.getContext('2d');
+        
+        let canvas = document.getElementById('canvasOutput');
         // Initialize your framework counter variable
         let frameCounter = 0;
         const counterDisplay = document.getElementById('frameCount');
-
         
-        let cap = null;
         let src = null;
         let dst = null;
         let isProcessing = false;
-        let timeoutID = null;
-        const FPS = 30;
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -54,6 +66,35 @@
                 fileInput.disabled = false;
             }        
         }
+        function processNextFrame() {
+            // Stop processing if the video has ended
+            if (video.ended) {
+                // Clean up matrices when finished to prevent memory leaks
+                src.delete();
+                dst.delete();
+                return;
+            }
+            frameCounter++;
+            counterDisplay.innerText = frameCounter;
+            
+            // Draw the current video frame onto the hidden canvas
+            ctx.drawImage(video, 0, 0, video.width, video.height);
+        
+            // Grab the pixel data from the canvas
+            const imgData = ctx.getImageData(0, 0, video.width, video.height);
+        
+            // Load pixel data directly into the OpenCV Matrix
+            src.data.set(imgData.data);
+        
+            // ==========================================
+            // PLACE YOUR OPENCV.JS IMAGE PROCESSING HERE
+            // Example: Convert to Grayscale
+            // cv.cvtColor(srcMat, processedMat, cv.COLOR_RGBA2GRAY, 0);
+            // ==========================================
+        
+            // Request the next frame (processes at browser render rates ~60fps)
+            requestAnimationFrame(processNextFrame);
+        };
 
         // 2. Handle file selection and video playback
         fileInput.addEventListener('change', (e) => {
@@ -71,78 +112,21 @@
             video.onloadedmetadata = () => {
                 video.width = video.videoWidth;
                 video.height = video.videoHeight;
-                document.getElementById('canvasOutput').width = video.videoWidth;
-                document.getElementById('canvasOutput').height = video.videoHeight;
+                offscreenCanvas.width = video.width;
+                offscreenCanvas.height = video.height;
 
                 // Initialize OpenCV matrices with matching dimensions
                 if (src) src.delete();
                 if (dst) dst.delete();
                 
                 src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-                dst = new cv.Mat(video.height, video.width, cv.CV_8UC1); // CV_8UC1 for Grayscale
-                cap = new cv.VideoCapture(video);
-                // Start playing and processing
-                video.play();
+                dst = new cv.Mat(video.height, video.width, cv.CV_8UC4); // CV_8UC1 for Grayscale
+
                 isProcessing = true;
-                timeoutID = setTimeout(processVideo, 0);
+                requestAnimationFrame(processNextFrame);
             };
         });
-
-        // 3. The OpenCV.js processing loop
-        function processVideo() {
-            if (!isProcessing || video.ended) {
-                stopLoop();
-                return;
-            }
-
-            try {
-                //let begin = Date.now();
-                
-                // Read current frame from video into 'src' Matrix
-                cap.read(src);
-                
-                // --- YOUR OPENCV.JS PROCESSING GOES HERE ---
-                // Example: Convert frame to Grayscale
-                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                
-                // Example: Apply Canny Edge Detection (uncomment to try)
-                // cv.Canny(src, dst, 50, 100, 3, false);
-                // --------------------------------------------
-
-                // Render processed matrix ('dst') to the HTML canvas
-                cv.imshow('canvasOutput', dst);
-                
-                frameCounter++;
-                counterDisplay.innerText = frameCounter;
-                
-                // Calculate delay to lock processing to the video's frame rate
-                //let delay = (1000 / FPS / 2) - (Date.now() - begin);
-                //setTimeout(processVideo, Math.max(0, delay));
-                timeoutID = setTimeout(processVideo, 0);
-                
-            } catch (err) {
-                console.error("OpenCV Error: ", err);
-                isProcessing = false;
-            }
-        }
         
-        function stopLoop() {
-            // Prevent any scheduled future iterations
-            if (timeoutId !== null) {
-                clearTimeout(timeoutID);
-                timeoutId = null;
-                isProcessing = false;
-            }
-            
-            // Free OpenCV.js WASM heap memory allocated to the matrix structure
-            if (src && !src.isDeleted()) {
-                src.delete();
-            }
-            if (dst && !dst.isDeleted()) {
-                dst.delete();
-            }
-            console.log("OpenCV.js video loop cleanly terminated.");
-        }
     </script>
 
     <!-- Async load OpenCV.js from a reliable CDN -->
