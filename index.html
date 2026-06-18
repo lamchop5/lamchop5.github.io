@@ -90,6 +90,7 @@
         // 3. The OpenCV.js processing loop
         function processVideo() {
             if (!isProcessing || video.paused || video.ended) {
+                isProcessing = false;
                 return;
             }
 
@@ -108,7 +109,7 @@
                 // --------------------------------------------
 
                 // Render processed matrix ('dst') to the HTML canvas
-                //cv.imshow('canvasOutput', dst);
+                cv.imshow('canvasOutput', dst);
                 
                 frameCounter++;
                 counterDisplay.innerText = frameCounter;
