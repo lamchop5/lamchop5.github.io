@@ -93,8 +93,6 @@
                 src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
                 dst = new cv.Mat(video.height, video.width, cv.CV_8UC4); // CV_8UC1 for Grayscale
 
-                ctx.drawImage(videoElement, 0, 0, width, height);
-                
                 isProcessing = true;
                 requestAnimationFrame(processNextFrame);
             };
