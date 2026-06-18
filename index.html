@@ -26,7 +26,7 @@
         <canvas id="canvasOutput" width="0" height="0"></canvas>
     </div>
     <!-- Counter display -->
-    <p>Current Frame: <span id="frameCount">0</span><span id="totalFrames"></span></p>
+    <p>Current Frame: <span id="frameCount">0</span></p>
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
@@ -42,20 +42,18 @@
         })();
         
         let video = document.getElementById('videoElement');
+        let canvas = document.getElementById('canvasOutput');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
 
-        let canvas = document.getElementById('canvasOutput');
         // Initialize your framework counter variable
         //let frameCounter = null;
         let frameIndex = null;
-        let totalframes = null;
         const counterDisplay = document.getElementById('frameCount');
         
         let src = null;
         let dst = null;
         let cap = null;
-        let isProcessing = false;
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -69,7 +67,7 @@
         function processFrame() {
             // Stop processing if the video has ended
             try {
-                if (!cap.read(src)) {
+                if (video.ended) {
                     // delete mats and do not process next frame (no loop)
                     src.delete();
                     dst.delete();
@@ -79,20 +77,21 @@
                 // --- Perform your OpenCV.js operations here ---
                 // cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 // cv.imshow('canvasOutput', dst);
-                counterDisplay.innerText = frameIndex;
                 // Advance 4x (1 frame processed, 3 skipped)
-                frameIndex += 4;
-                
-                if (frameIndex >= totalFrames) {
-                    frameIndex = 0;
-                    src.delete();
-                    dst.delete();
-                    return;
+                let frameSkip = 4
+                for(let i =0; i<frameSkip; i++) {
+                    if (frameIndex % frameSkip == 0 ) {
+                        // process frame
+                        counterDisplay.innerText = frameIndex;
+                        cap.read(src);
+                    } else {
+                        // skip frame
+                        cap.grab();
+                    }
+                    frameIndex++;
                 }
-                // Set the playhead to the new position
-                cap.set(cv.CAP_PROP_POS_FRAMES, frameIndex);
+                // schedule next frame
                 requestAnimationFrame(processFrame);
-                
             } catch (err) {
                 console.error(err);
             }
@@ -121,9 +120,7 @@
                 
                 cap = new cv.VideoCapture(video);
                 frameIndex = 0;
-                totalFrames = cap.get(cv.CAP_PROP_FRAME_COUNT);
-                counterDisplay.innerText = 0
-                document.getElementById('frameCount').innerText = "/"+totalFrames;
+                counterDisplay.innerText = frameIndex;
                 
                 // start processing
                 requestAnimationFrame(processFrame);
