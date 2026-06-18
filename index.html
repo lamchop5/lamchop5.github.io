@@ -66,6 +66,35 @@
                 fileInput.disabled = false;
             }        
         }
+        function processNextFrame() {
+            // Stop processing if the video has ended
+            if (video.ended) {
+                // Clean up matrices when finished to prevent memory leaks
+                src.delete();
+                dst.delete();
+                return;
+            }
+            frameCounter++;
+            counterDisplay.innerText = frameCounter;
+            
+            // Draw the current video frame onto the hidden canvas
+            ctx.drawImage(video, 0, 0, video.width, video.height);
+        
+            // Grab the pixel data from the canvas
+            const imgData = ctx.getImageData(0, 0, video.width, video.height);
+        
+            // Load pixel data directly into the OpenCV Matrix
+            src.data.set(imgData.data);
+        
+            // ==========================================
+            // PLACE YOUR OPENCV.JS IMAGE PROCESSING HERE
+            // Example: Convert to Grayscale
+            // cv.cvtColor(srcMat, processedMat, cv.COLOR_RGBA2GRAY, 0);
+            // ==========================================
+        
+            // Request the next frame (processes at browser render rates ~60fps)
+            requestAnimationFrame(processNextFrame);
+        };
 
         // 2. Handle file selection and video playback
         fileInput.addEventListener('change', (e) => {
@@ -98,36 +127,6 @@
             };
         });
         
-        function processNextFrame() {
-            // Stop processing if the video has ended
-            if (video.paused || video.ended) {
-                // Clean up matrices when finished to prevent memory leaks
-                src.delete();
-                dst.delete();
-                return;
-            }
-            frameCounter++;
-            counterDisplay.innerText = frameCounter;
-            
-            // Draw the current video frame onto the hidden canvas
-            ctx.drawImage(video, 0, 0, video.width, video.height);
-        
-            // Grab the pixel data from the canvas
-            const imgData = ctx.getImageData(0, 0, video.width, video.height);
-        
-            // Load pixel data directly into the OpenCV Matrix
-            src.data.set(imgData.data);
-        
-            // ==========================================
-            // PLACE YOUR OPENCV.JS IMAGE PROCESSING HERE
-            // Example: Convert to Grayscale
-            // cv.cvtColor(srcMat, processedMat, cv.COLOR_RGBA2GRAY, 0);
-            // ==========================================
-        
-            // Request the next frame (processes at browser render rates ~60fps)
-            requestAnimationFrame(processNextFrame);
-        }
-
     </script>
 
     <!-- Async load OpenCV.js from a reliable CDN -->
