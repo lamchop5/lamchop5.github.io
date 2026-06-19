@@ -78,6 +78,42 @@ function checkStart(image){
     return hpbar_found;
 }
 
+function findCbeltIcon(image){
+    // get only the damage skills area from screenshot
+    let black_filtered = new cv.Mat();
+    black_filtered = filterImage(image, [25, 25, 25, 128],[25, 25, 25, 128])
+
+    // findContours assumes black bg and white contours, prepare Mat and invert
+    let dst = new cv.Mat();
+    cv.bitwise_not(black_filtered, dst) //invert
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    let max_y = 10000;
+    let retval = {
+        x: null, y: null, w: null, h: null
+    };
+
+    // find max area and save contour index
+    for (let i = 0; i < contours.size(); i++) {
+        let cnt = contours.get(i);
+        // Get the bounding rectangle (x, y, w, h)
+        let rect = cv.boundingRect(cnt);
+        // if width and height within 10 pixels
+        if (Math.abs(rect.width-rect.height)<10 && rect.width>50 && rect.height>50) {
+            if (rect.y < max_y) {
+                retval = {x:rect.x, y:rect.y, w:rect.width, h:rect.height}
+            }
+        }
+    }
+    black_filtered.delete()
+    dst.delete();
+    contours.delete();
+    hierarchy.delete();
+    return retval;
+}
+
 function getDamageWindow(image){
     // get only the damage skills area from screenshot
     let grey_filtered = new cv.Mat();
