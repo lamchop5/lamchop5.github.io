@@ -112,6 +112,8 @@
             if (video.ended) {
                 src.delete();
                 dst.delete();
+                iconRect.delete();
+                iconCrop.delete();
                 outputLog.innerText = log;
                 return;
             }
@@ -130,11 +132,11 @@
                         // scan for icon contours
                         iconData = findCbeltIcon(src);
                         console.log(iconData);
-                        //iconRect = new cv.Rect(iconData.x, iconData.y, iconData.width, iconData.height);
-                        //iconCrop = src.roi(iconRect);
-                        //icon.width = iconData.width;
-                        //icon.height = iconData.height;
-                        //cv.show('iconOutput', iconCrop);
+                        iconRect = new cv.Rect(iconData.x, iconData.y, iconData.w, iconData.h);
+                        iconCrop = src.roi(iconRect);
+                        icon.width = iconData.width;
+                        icon.height = iconData.height;
+                        cv.show('iconOutput', iconCrop);
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
