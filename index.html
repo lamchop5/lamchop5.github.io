@@ -136,7 +136,7 @@
                         iconCrop = src.roi(iconRect);
                         icon.width = iconData.width;
                         icon.height = iconData.height;
-                        cv.show('iconOutput', iconCrop);
+                        cv.imshow('iconOutput', iconCrop);
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
