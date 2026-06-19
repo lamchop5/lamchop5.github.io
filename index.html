@@ -27,6 +27,7 @@
     </div>
     <!-- Counter display -->
     <p>Current Frame: <span id="frameCount">0</span></p>
+    <p id="outputLog"></p>
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
@@ -44,6 +45,7 @@
         let video = document.getElementById('videoElement');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
+        let log = document.getElementById('outputLog');
         // Initialize your framework counter variable
         let frameCounter = 0;
         const counterDisplay = document.getElementById('frameCount');
@@ -114,15 +116,22 @@
                 counterDisplay.innerText = frameCounter;
                 //cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.imshow('canvasOutput', src);
-                if (checkStart(src)) {
-                    console.log("found initial hp bar at: " + frameCounter);
-                    startFrame = frameCounter;
-                    video.pause();
-                    video.playbackRate = 4.0;
-                    video.play();
+                if (startFrame == 0) {
+                    if (checkStart(src)) {
+                        log.innerText = "found initial hp bar at: " + frameCounter
+                        startFrame = frameCounter;
+                        // scan for icon contours
+                        video.pause();
+                        video.playbackRate = 4.0;
+                        video.play();
+                        setTimeout(processVideo, 0);
+                        return;
+                    }
+                } else {
+                    log.innerText = "<br>frame " + frameCounter + ": "
+                    setTimeout(processVideo, 0);                
                 }
                 
-                setTimeout(processVideo, 0);
             } catch (err) {
                 console.error("OpenCV Error: ", err);
                 isProcessing = false;
