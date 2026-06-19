@@ -115,12 +115,11 @@
                 //cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.imshow('canvasOutput', src);
                 if (checkStart(src)) {
-                    console.log("found hp bar at, stopping");
+                    console.log("found initial hp bar at: " + frameCounter);
                     startFrame = frameCounter;
                     video.pause();
-                    videoElement.playbackRate = 4.0;
+                    video.playbackRate = 4.0;
                     video.play();
-                    return;
                 }
                 
                 setTimeout(processVideo, 0);
