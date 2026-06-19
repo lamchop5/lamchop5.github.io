@@ -98,11 +98,17 @@
 
             try {
                 cap.read(src);
-                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                cv.imshow('canvasOutput', src);
-                
                 frameCounter++;
                 counterDisplay.innerText = frameCounter;
+                //cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+                cv.imshow('canvasOutput', src);
+                let startFound = checkStart(src);
+                if (startFound) {
+                    console.log("found hp bar at, stopping");
+                    video.pause();
+                    return;
+                }
+                
                 setTimeout(processVideo, 0);
             } catch (err) {
                 console.error("OpenCV Error: ", err);
