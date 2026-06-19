@@ -30,6 +30,17 @@
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
+        (function() {
+            const originalGetContext = HTMLCanvasElement.prototype.getContext;
+            HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+                if (type === '2d') {
+                    attributes = attributes || {};
+                    attributes.willReadFrequently = true;
+                }
+                return originalGetContext.call(this, type, attributes);
+            };
+        })();
+        
         let video = document.getElementById('videoElement');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
