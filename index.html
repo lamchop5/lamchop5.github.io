@@ -126,11 +126,11 @@
                         video.playbackRate = 4.0;
                         video.play();
                     }
-                    setTimeout(processVideo, 0);                       
+                    requestAnimationFrame(processVideo);                       
                     return;
                 } else {
                     log.innerText += "\nframe " + frameCounter + ": "
-                    setTimeout(processVideo, 0);                
+                    requestAnimationFrame(processVideo);                
                 }
                 
             } catch (err) {
