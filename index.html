@@ -48,11 +48,11 @@
         let frameCounter = 0;
         const counterDisplay = document.getElementById('frameCount');
 
-        
-        let cap = null;
-        let src = null;
-        let dst = null;
+        let cap = null;            // opencv video capture stream
+        let src = null;            // opencv source mat (input)
+        let dst = null;            // opencv destination mat (result)
         let isProcessing = false;
+        let startFrame = 0;        // frame where initial hp bar spawns
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -77,6 +77,7 @@
             
             // Stop any previous processing loops safely
             isProcessing = false; 
+            startFrame = 0;
 
             // Wait for video metadata to load so dimensions are correct
             video.onloadedmetadata = () => {
@@ -113,10 +114,12 @@
                 counterDisplay.innerText = frameCounter;
                 //cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.imshow('canvasOutput', src);
-                let startFound = checkStart(src);
-                if (startFound) {
+                if (checkStart(src)) {
                     console.log("found hp bar at, stopping");
+                    startFrame = frameCounter;
                     video.pause();
+                    videoElement.playbackRate = 4.0;
+                    video.play();
                     return;
                 }
                 
