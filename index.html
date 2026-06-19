@@ -74,14 +74,9 @@
                     return;
                 }
                 frameIndex++;
-                if (frameIndex % 4 == 0 ) {
-                    // process frame
-                    counterDisplay.innerText = frameIndex;
-                    cap.read(src);
-                } else {
-                    // skip frame
-                    cap.read();
-                }
+                counterDisplay.innerText = frameIndex;
+                cap.read(src);
+
                 // schedule next frame
                 requestAnimationFrame(processFrame);
             } catch (err) {
@@ -102,7 +97,9 @@
             video.onloadedmetadata = () => {
                 video.width = video.videoWidth;
                 video.height = video.videoHeight;
-
+                // Set the playback rate to 4x
+                video.playbackRate = 4.0; 
+                
                 // Initialize OpenCV matrices with matching dimensions
                 if (src) src.delete();
                 if (dst) dst.delete();
