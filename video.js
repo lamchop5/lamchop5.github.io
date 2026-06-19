@@ -46,6 +46,38 @@ function filterImage(image, color, threshold) {
     return imgInRangeNot;
 }
 
+function checkStart(image){
+    // get only the damage skills area from screenshot
+    let orange_filtered = new cv.Mat();
+    orange_filtered = filterImage(image, [253, 152, 28,128],[20,20,20,128])
+
+    // findContours assumes black bg and white contours, prepare Mat and invert
+    let dst = new cv.Mat();
+    cv.bitwise_not(orange_filtered, dst) //invert
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    let maxArea = 0;
+    let hpbar_found = false;
+
+    // find max area and save contour index
+    for (let i = 0; i < contours.size(); i++) {
+        let cnt = contours.get(i);
+        // Get the bounding rectangle (x, y, w, h)
+        let rect = cv.boundingRect(cnt);
+        if (rect.width>(image.cols*.8) && rect.height>10) {
+            hpbar_found = true;
+            break;
+        }
+    }
+    orange_filtered.delete()
+    dst.delete();
+    contours.delete();
+    hierarchy.delete();
+    return hpbar_found;
+}
+
 function getDamageWindow(image){
     // get only the damage skills area from screenshot
     let grey_filtered = new cv.Mat();
