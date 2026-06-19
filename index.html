@@ -76,7 +76,8 @@
                 frameIndex++;
                 counterDisplay.innerText = frameIndex;
                 cap.read(src);
-                cv.imshow('canvasOutput', src);
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+                cv.imshow('canvasOutput', dst);
 
                 // schedule next frame
                 requestAnimationFrame(processFrame);
@@ -109,7 +110,7 @@
                 if (dst) dst.delete();
                 
                 src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-                dst = new cv.Mat(video.height, video.width, cv.CV_8UC4); // CV_8UC1 for Grayscale
+                dst = new cv.Mat(video.height, video.width, cv.CV_8UC1); // CV_8UC1 for Grayscale
                 
                 cap = new cv.VideoCapture(video);
                 frameIndex = 0;
