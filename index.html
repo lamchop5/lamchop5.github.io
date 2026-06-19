@@ -76,6 +76,7 @@
                 frameIndex++;
                 counterDisplay.innerText = frameIndex;
                 cap.read(src);
+                cv.imshow('canvasOutput', src);
 
                 // schedule next frame
                 requestAnimationFrame(processFrame);
@@ -97,6 +98,9 @@
             video.onloadedmetadata = () => {
                 video.width = video.videoWidth;
                 video.height = video.videoHeight;
+                canvas.width = video.width;
+                canvas.height = video.height;
+                
                 // Set the playback rate to 4x
                 video.playbackRate = 4.0; 
                 
