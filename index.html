@@ -129,11 +129,12 @@
                         startFrame = frameCounter;
                         // scan for icon contours
                         iconData = findCbeltIcon(src);
-                        iconRect = new cv.Rect(iconData.x, iconData.y, iconData.width, iconData.height);
-                        iconCrop = src.roi(iconRect);
-                        icon.width = iconData.width;
-                        icon.height = iconData.height;
-                        cv.show('iconOutput', iconCrop);
+                        console.log(iconData);
+                        //iconRect = new cv.Rect(iconData.x, iconData.y, iconData.width, iconData.height);
+                        //iconCrop = src.roi(iconRect);
+                        //icon.width = iconData.width;
+                        //icon.height = iconData.height;
+                        //cv.show('iconOutput', iconCrop);
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
