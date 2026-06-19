@@ -21,7 +21,7 @@
     
     <div class="container">
         <!-- Hidden video element used as the data source -->
-        <video id="videoElement" width="640" height="480" loop muted playsinline style="display:none;"></video>
+        <video id="videoElement" width="640" height="480" muted playsinline style="display:none;"></video>
         <!-- Canvas where OpenCV.js renders the processed frames -->
         <canvas id="canvasOutput" width="640" height="480"></canvas>
     </div>
@@ -61,6 +61,8 @@
             // Create local URL for the uploaded video file
             const fileURL = URL.createObjectURL(file);
             video.src = fileURL;
+            // Set the playback rate to 4x
+            videoElement.playbackRate = 4.0; 
             
             // Stop any previous processing loops safely
             isProcessing = false; 
