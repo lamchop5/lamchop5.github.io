@@ -42,8 +42,6 @@
         let src = null;
         let dst = null;
         let isProcessing = false;
-        let timeouId = null;
-        const FPS = 30;
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -84,64 +82,30 @@
                 // Start playing and processing
                 video.play();
                 isProcessing = true;
-                timeoutID = setTimeout(processVideo, 0);
+                setTimeout(processVideo, 0);
             };
         });
 
         // 3. The OpenCV.js processing loop
         function processVideo() {
-            if (!isProcessing || video.ended) {
-                stopLoop();
+            if (video.ended) {
+                src.delete();
+                dst.delete();
                 return;
             }
 
             try {
-                //let begin = Date.now();
-                
-                // Read current frame from video into 'src' Matrix
                 cap.read(src);
-                
-                // --- YOUR OPENCV.JS PROCESSING GOES HERE ---
-                // Example: Convert frame to Grayscale
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                
-                // Example: Apply Canny Edge Detection (uncomment to try)
-                // cv.Canny(src, dst, 50, 100, 3, false);
-                // --------------------------------------------
-
-                // Render processed matrix ('dst') to the HTML canvas
                 cv.imshow('canvasOutput', dst);
                 
                 frameCounter++;
                 counterDisplay.innerText = frameCounter;
-                
-                // Calculate delay to lock processing to the video's frame rate
-                //let delay = (1000 / FPS / 2) - (Date.now() - begin);
-                //setTimeout(processVideo, Math.max(0, delay));
-                timeoutID = setTimeout(processVideo, 0);
-                
+                setTimeout(processVideo, 0);
             } catch (err) {
                 console.error("OpenCV Error: ", err);
                 isProcessing = false;
             }
-        }
-        
-        function stopLoop() {
-            // Prevent any scheduled future iterations
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
-                isProcessing = false;
-            }
-            
-            // Free OpenCV.js WASM heap memory allocated to the matrix structure
-            if (src && !src.isDeleted()) {
-                src.delete();
-            }
-            if (dst && !dst.isDeleted()) {
-                dst.delete();
-            }
-            console.log("OpenCV.js video loop cleanly terminated.");
         }
     </script>
 
