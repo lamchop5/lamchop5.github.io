@@ -117,6 +117,7 @@
                 //cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.imshow('canvasOutput', src);
                 if (startFrame == 0) {
+                    // check for first hp bar
                     if (checkStart(src)) {
                         log.innerText = "found initial hp bar at: " + frameCounter
                         startFrame = frameCounter;
@@ -124,9 +125,9 @@
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
-                        setTimeout(processVideo, 0);
-                        return;
                     }
+                    setTimeout(processVideo, 0);                       
+                    return;
                 } else {
                     log.innerText = "<br>frame " + frameCounter + ": "
                     setTimeout(processVideo, 0);                
