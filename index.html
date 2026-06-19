@@ -99,7 +99,7 @@
             try {
                 cap.read(src);
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                cv.imshow('canvasOutput', dst);
+                cv.imshow('canvasOutput', src);
                 
                 frameCounter++;
                 counterDisplay.innerText = frameCounter;
