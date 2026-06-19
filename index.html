@@ -91,7 +91,8 @@
             // Example: Convert to Grayscale
             // cv.cvtColor(srcMat, processedMat, cv.COLOR_RGBA2GRAY, 0);
             // ==========================================
-        
+            cv.imshow(canvas, src);
+            
             // Request the next frame (processes at browser render rates ~60fps)
             requestAnimationFrame(processNextFrame);
         };
