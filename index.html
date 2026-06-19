@@ -121,7 +121,7 @@
                 if (startFrame == 0) {
                     // check for first hp bar
                     if (checkStart(src)) {
-                        log = "found initial hp bar at: " + frameCounter
+                        log = "found initial hp bar at frame " + frameCounter + ": " +video.currentTime
                         startFrame = frameCounter;
                         // scan for icon contours
                         video.pause();
@@ -131,7 +131,7 @@
                     requestAnimationFrame(processVideo);                       
                     return;
                 } else {
-                    log += "\nframe " + frameCounter + ": "
+                    log += "\nframe " + frameCounter + ": " + video.currentTime
                     requestAnimationFrame(processVideo);                
                 }
                 
