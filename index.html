@@ -24,6 +24,7 @@
         <video id="videoElement" width="640" height="480" muted playsinline style="display:none;"></video>
         <!-- Canvas where OpenCV.js renders the processed frames -->
         <canvas id="canvasOutput" width="640" height="480"></canvas>
+        <canvas id="iconOutput" width="50" height="50"></canvas>
     </div>
     <!-- Counter display -->
     <p>Current Frame: <span id="frameCount">0</span></p>
@@ -43,6 +44,7 @@
         })();
         
         let video = document.getElementById('videoElement');
+        let icone = document.getElementById('iconOutput');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
         let log = null;
@@ -53,8 +55,10 @@
         let cap = null;            // opencv video capture stream
         let src = null;            // opencv source mat (input)
         let dst = null;            // opencv destination mat (result)
-        let isProcessing = false;
         let startFrame = 0;        // frame where initial hp bar spawns
+        let iconRect = null;
+        let iconCrop = null;
+        let iconData={x:null, y:null, w:null, h:null};
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -124,6 +128,12 @@
                         log = "found initial hp bar at frame " + frameCounter + ": " +video.currentTime
                         startFrame = frameCounter;
                         // scan for icon contours
+                        iconData = findCbeltIcon(src);
+                        iconRect = new cv.Rect(iconData.x, iconData.y, iconData.width, iconData.height);
+                        iconCrop = src.roi(iconRect);
+                        icon.width = iconData.width;
+                        icon.height = iconData.height;
+                        cv.show('iconOutput', iconCrop);
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
