@@ -145,7 +145,7 @@
                     requestAnimationFrame(processVideo);                       
                     return;
                 } else {
-                    log += "\nframe " + frameCounter + ": " + (video.currentTime-startTime)
+                    log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*100)/100
                     requestAnimationFrame(processVideo);                
                 }
                 
