@@ -74,7 +74,7 @@
                     return;
                 }
                 frameIndex++;
-                if (frameIndex % frameSkip == 0 ) {
+                if (frameIndex % 4 == 0 ) {
                     // process frame
                     counterDisplay.innerText = frameIndex;
                     cap.read(src);
