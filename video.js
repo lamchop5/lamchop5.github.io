@@ -103,7 +103,11 @@ function findCbeltIcon(image){
         // if width and height within 10 pixels
         if (Math.abs(rect.width-rect.height)<10 && rect.width>50 && rect.height>50) {
             if (rect.y < max_y) {
-                retval = {x:rect.x, y:rect.y, w:rect.width, h:rect.height}
+                let top = (rect.y+(rect.height*.8)) | 0
+                let height = (rect.height*.3) | 0
+                let left = (rect.x+(rect.width*.2)) | 0
+                let width = (rect.width*.9) | 0
+                retval = {x:left, y:top, w:width, h:height}
             }
         }
     }
