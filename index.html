@@ -45,7 +45,7 @@
         let video = document.getElementById('videoElement');
         let fileInput = document.getElementById('videoUpload');
         let loadingText = document.getElementById('loading');
-        let log = document.getElementById('outputLog');
+        let log = null;
         // Initialize your framework counter variable
         let frameCounter = 0;
         const counterDisplay = document.getElementById('frameCount');
@@ -80,6 +80,7 @@
             // Stop any previous processing loops safely
             isProcessing = false; 
             startFrame = 0;
+            log = "";
 
             // Wait for video metadata to load so dimensions are correct
             video.onloadedmetadata = () => {
@@ -98,7 +99,7 @@
                 // Start playing and processing
                 video.play();
                 isProcessing = true;
-                setTimeout(processVideo, 0);
+                requestAnimationFrame(processVideo);
             };
         });
 
@@ -107,6 +108,7 @@
             if (video.ended) {
                 src.delete();
                 dst.delete();
+                outputLog.innerText = log;
                 return;
             }
 
@@ -119,7 +121,7 @@
                 if (startFrame == 0) {
                     // check for first hp bar
                     if (checkStart(src)) {
-                        log.innerText = "found initial hp bar at: " + frameCounter
+                        log = "found initial hp bar at: " + frameCounter
                         startFrame = frameCounter;
                         // scan for icon contours
                         video.pause();
@@ -129,7 +131,7 @@
                     requestAnimationFrame(processVideo);                       
                     return;
                 } else {
-                    //log.innerText += "\nframe " + frameCounter + ": "
+                    log += "\nframe " + frameCounter + ": "
                     requestAnimationFrame(processVideo);                
                 }
                 
