@@ -56,6 +56,7 @@
         let src = null;            // opencv source mat (input)
         let dst = null;            // opencv destination mat (result)
         let startFrame = 0;        // frame where initial hp bar spawns
+        let startTime = 0;
         let iconRect = null;
         let iconCrop = null;
         let iconData={x:null, y:null, w:null, h:null};
@@ -128,6 +129,7 @@
                     if (checkStart(src)) {
                         log = "found initial hp bar at frame " + frameCounter + ": " +video.currentTime
                         startFrame = frameCounter;
+                        startTime = video.currentTime;
                         // scan for icon contours
                         iconData = findCbeltIcon(src);
                         console.log(iconData);
@@ -143,7 +145,7 @@
                     requestAnimationFrame(processVideo);                       
                     return;
                 } else {
-                    log += "\nframe " + frameCounter + ": " + video.currentTime
+                    log += "\nframe " + frameCounter + ": " + (video.currentTime-startTime)
                     requestAnimationFrame(processVideo);                
                 }
                 
