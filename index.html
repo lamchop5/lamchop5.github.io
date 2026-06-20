@@ -177,7 +177,7 @@
             dst.delete();
 
             try {
-                const result = await Tesseract.recognize(canvasOutput, 'eng', {
+                const result = await Tesseract.recognize(iconOutput, 'eng', {
                     logger: m => {
                         if(m.status === 'recognizing') {
                             statusText.innerText = `OCR Progress: ${Math.round(m.progress * 100)}%`;
