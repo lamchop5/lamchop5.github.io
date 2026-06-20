@@ -116,7 +116,7 @@
         });
 
         // 3. The OpenCV.js processing loop
-        function processVideo() {
+        async function processVideo() {
             if (video.ended) {
                 src.delete();
                 dst.delete();
