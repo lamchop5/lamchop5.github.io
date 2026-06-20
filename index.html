@@ -153,14 +153,12 @@
                     requestAnimationFrame(processVideo);
                     return;
                 } else {
-                    if (((frameCounter-startFrame)%30) == 0) {
-                        counterDisplay.innerText = frameCounter;
-                        iconCrop = src.roi(iconRect);
-                        cv.imshow('iconOutput', iconCrop);
-                        const ocr_text = await preprocessAndOCR(icon);
-                        //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
-                        log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
-                    }
+                    counterDisplay.innerText = frameCounter;
+                    iconCrop = src.roi(iconRect);
+                    cv.imshow('iconOutput', iconCrop);
+                    const ocr_text = await preprocessAndOCR(icon);
+                    //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
+                    log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
                     //setTimeout(processVideo,0,1);
                     requestAnimationFrame(processVideo);                
                 }
