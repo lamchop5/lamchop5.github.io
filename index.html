@@ -165,7 +165,7 @@
                     let cropsVector = new cv.MatVector();
                     cropsVector.push_back(crops);
                     cropsVector.push_back(iconCrop);
-                    cv.hconcat(cropsVector, crops);
+                    cv.vconcat(cropsVector, crops);
                     cropsVector.delete();
                     
                     cv.imshow('iconOutput', iconCrop);
