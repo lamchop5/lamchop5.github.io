@@ -127,12 +127,12 @@
             try {
                 cap.read(src);
                 frameCounter++;
-                counterDisplay.innerText = frameCounter;
                 //cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 //cv.imshow('canvasOutput', src);
                 if (startFrame == 0) {
                     // check for first hp bar
                     if (checkStart(src)) {
+                        counterDisplay.innerText = frameCounter;
                         log = "found initial hp bar at frame " + frameCounter + ": " +video.currentTime
                         startFrame = frameCounter;
                         startTime = video.currentTime;
@@ -153,7 +153,8 @@
                     //requestAnimationFrame(processVideo);
                     return;
                 } else {
-                    if (((frameCounter-startFrame)%15) == 0) {
+                    if (((frameCounter-startFrame)%30) == 0) {
+                        counterDisplay.innerText = frameCounter;
                         iconCrop = src.roi(iconRect);
                         cv.imshow('iconOutput', iconCrop);
                         const ocr_text = await preprocessAndOCR(icon);
