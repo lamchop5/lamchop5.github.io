@@ -86,8 +86,6 @@
             // Create local URL for the uploaded video file
             const fileURL = URL.createObjectURL(file);
             video.src = fileURL;
-            // Set the playback rate to 4x
-            // videoElement.playbackRate = 4.0;
             
             // Stop any previous processing loops safely
             isProcessing = false; 
@@ -111,7 +109,8 @@
                 // Start playing and processing
                 video.play();
                 isProcessing = true;
-                requestAnimationFrame(processVideo);
+                setTimeout(processVideo,0);
+                //requestAnimationFrame(processVideo);
             };
         });
 
@@ -150,17 +149,19 @@
                         //video.playbackRate = 4.0;
                         //video.play();
                     }
-                    requestAnimationFrame(processVideo);
+                    setTimeout(processVideo,0);
+                    //requestAnimationFrame(processVideo);
                     return;
                 } else {
                     if (((frameCounter-startFrame)%15) == 0) {
                         iconCrop = src.roi(iconRect);
                         cv.imshow('iconOutput', iconCrop);
                         const ocr_text = await preprocessAndOCR(icon);
-                        //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
-                        log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
+                        log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
+                        //log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
                     }
-                    requestAnimationFrame(processVideo);                
+                    setTimeout(processVideo,0);
+                    //requestAnimationFrame(processVideo);                
                 }
                 
             } catch (err) {
