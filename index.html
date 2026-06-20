@@ -153,6 +153,8 @@
                     requestAnimationFrame(processVideo);                       
                     return;
                 } else {
+                    iconCrop = src.roi(iconRect);
+                    cv.imshow('iconOutput', iconCrop);
                     log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*100)/100 +", ocr: " + preprocessAndOCR(icon);
                     requestAnimationFrame(processVideo);                
                 }
