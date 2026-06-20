@@ -109,8 +109,8 @@
                 // Start playing and processing
                 video.play();
                 isProcessing = true;
-                setTimeout(processVideo,0);
-                //requestAnimationFrame(processVideo);
+                //setTimeout(processVideo,0,0);
+                requestAnimationFrame(processVideo);
             };
         });
 
@@ -145,12 +145,12 @@
                         icon.height = iconData.height;
                         cv.imshow('iconOutput', iconCrop);
                         const ocr_text = await preprocessAndOCR(icon);
-                        //video.pause();
-                        //video.playbackRate = 4.0;
-                        //video.play();
+                        video.pause();
+                        video.playbackRate = 4.0;
+                        video.play();
                     }
-                    setTimeout(processVideo,0);
-                    //requestAnimationFrame(processVideo);
+                    //setTimeout(processVideo,0,2);
+                    requestAnimationFrame(processVideo);
                     return;
                 } else {
                     if (((frameCounter-startFrame)%30) == 0) {
@@ -158,11 +158,11 @@
                         iconCrop = src.roi(iconRect);
                         cv.imshow('iconOutput', iconCrop);
                         const ocr_text = await preprocessAndOCR(icon);
-                        log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
-                        //log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
+                        //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
+                        log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
                     }
-                    setTimeout(processVideo,0);
-                    //requestAnimationFrame(processVideo);                
+                    //setTimeout(processVideo,0,1);
+                    requestAnimationFrame(processVideo);                
                 }
                 
             } catch (err) {
