@@ -189,7 +189,7 @@
 
             // filter high white
             dest = filterImage(source, [245,245,245,128], [10,10,10,128])
-            cv.threshold(dest, dest, 127, 255, cv.THRESH_BINARY);
+            //cv.threshold(dest, dest, 127, 255, cv.THRESH_BINARY);
             //cv.cvtColor(source, source, cv.COLOR_RGBA2GRAY, 0);
             //cv.adaptiveThreshold(source, dest, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
             cv.imshow('iconOutput', dest);
