@@ -27,11 +27,9 @@
         <video id="videoElement" width="640" height="480" muted playsinline style="display:none;"></video>
         <!-- Canvas where OpenCV.js renders the processed frames -->
         <canvas id="canvasOutput" width="640" height="480"></canvas>
-        <canvas id="iconOutput" width="50" height="50"></canvas>
     </div>
+    <div><canvas id="iconOutput" width="50" height="50"></canvas></div>
     <!-- Counter display -->
-    <p id="statusDisplay"></p>
-    <p id="outputDisplay"></p>
     <p>Current Frame: <span id="frameCount">0</span></p>
     <p id="outputLog"></p>
     <canvas id="cropsOutput"></canvas>
@@ -123,6 +121,7 @@
                 dst.delete();
                 iconCrop.delete();
                 outputLog.innerText = log;
+                cv.threshold(crops, crops, 250, 255, cv.THRESH_BINARY);
                 cv.imshow(cropsOutput, crops);
                 crops.delete();
                 return;
