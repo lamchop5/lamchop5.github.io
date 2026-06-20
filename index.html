@@ -193,10 +193,13 @@
             let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
             let anchor = new cv.Point(-1, -1); // Center of the kernel
             //cv.dilate(dest,dest,kernel,anchor,cv.BORDER_CONSTANT,cv.morphologyDefaultBorderValue());
-            cv.dilate(dest, dest, kernel, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            let dilated = new cv.Mat();
+            cv.dilate(dest, dilated, kernel, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            kernel.delete()
             //cv.cvtColor(source, source, cv.COLOR_RGBA2GRAY, 0);
             //cv.adaptiveThreshold(source, dest, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
-            cv.imshow('iconOutput', dest);
+            cv.imshow('iconOutput', dilated);
+            dilated.delete();
 
             // Clean up memory from WebAssembly heap
             dest.delete();
