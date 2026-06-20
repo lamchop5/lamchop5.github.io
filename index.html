@@ -121,6 +121,7 @@
                 dst.delete();
                 iconCrop.delete();
                 outputLog.innerText = log;
+                cv.cvtColor(crops, crops, cv.COLOR_RGBA2GRAY, 0);
                 cv.threshold(crops, crops, 250, 255, cv.THRESH_BINARY);
                 cv.imshow(cropsOutput, crops);
                 crops.delete();
