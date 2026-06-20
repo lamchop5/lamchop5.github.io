@@ -167,7 +167,7 @@
         }
 
         async function preprocessAndOCR(imgElement) {
-            statusText.innerText = 'Preprocessing image with OpenCV...';
+            //statusText.innerText = 'Preprocessing image with OpenCV...';
             let source = cv.imread(imgElement);
             let dest = new cv.Mat();
 
@@ -179,22 +179,23 @@
 
             // Clean up memory from WebAssembly heap
             dest.delete();
-            statusText.innerText = 'Sending image to tesseract...';
+            //statusText.innerText = 'Sending image to tesseract...';
             try {
                 const result = await Tesseract.recognize(iconOutput, 'eng', {
                     logger: m => {
                         if(m.status === 'recognizing') {
-                            statusText.innerText = `OCR Progress: ${Math.round(m.progress * 100)}%`;
+                            //statusText.innerText = `OCR Progress: ${Math.round(m.progress * 100)}%`;
+                            pass;
                         }
                     }
                 });
 
-                statusText.innerText = 'OCR Complete!';
-                outputText.innerText = result.data.text || "[No text detected]";
+                //statusText.innerText = 'OCR Complete!';
+                //outputText.innerText = result.data.text || "[No text detected]";
                 return result.data.text || "[No text detected]";
             } catch (error) {
                 console.error(error);
-                statusText.innerText = 'OCR Failed.';
+                //statusText.innerText = 'OCR Failed.';
             }
         }
     </script>
