@@ -169,7 +169,7 @@
             let dest = new cv.Mat();
 
             // filter high white
-            source = filterImage(source, [250,250,250,128], [5,5,5,128])
+            dest = filterImage(source, [250,250,250,128], [5,5,5,128])
             //cv.cvtColor(source, source, cv.COLOR_RGBA2GRAY, 0);
             //cv.adaptiveThreshold(source, dest, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
             cv.imshow('iconOutput', dest);
