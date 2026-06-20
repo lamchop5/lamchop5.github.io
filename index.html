@@ -111,12 +111,12 @@
                 // Start playing and processing
                 video.play();
                 isProcessing = true;
-                requestAnimationFrame(processVideo,0);
+                requestAnimationFrame(processVideo);
             };
         });
 
         // 3. The OpenCV.js processing loop
-        async function processVideo(seconds_skip) {
+        async function processVideo() {
             if (video.ended) {
                 src.delete();
                 dst.delete();
@@ -126,7 +126,6 @@
             }
 
             try {
-                video.currentTime+=seconds_skip;
                 cap.read(src);
                 frameCounter++;
                 counterDisplay.innerText = frameCounter;
@@ -151,15 +150,17 @@
                         //video.playbackRate = 4.0;
                         //video.play();
                     }
-                    requestAnimationFrame(processVideo,2);
+                    requestAnimationFrame(processVideo);
                     return;
                 } else {
-                    iconCrop = src.roi(iconRect);
-                    cv.imshow('iconOutput', iconCrop);
-                    const ocr_text = await preprocessAndOCR(icon);
-                    //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
-                    log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
-                    requestAnimationFrame(processVideo,1);                
+                    if ((frameCounter-startFrame)%15) == 0) {
+                        iconCrop = src.roi(iconRect);
+                        cv.imshow('iconOutput', iconCrop);
+                        const ocr_text = await preprocessAndOCR(icon);
+                        //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
+                        log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
+                    }
+                    requestAnimationFrame(processVideo);                
                 }
                 
             } catch (err) {
