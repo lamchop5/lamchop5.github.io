@@ -34,6 +34,7 @@
     <p id="outputDisplay"></p>
     <p>Current Frame: <span id="frameCount">0</span></p>
     <p id="outputLog"></p>
+    <canvas id="cropsOutput"></canvas>
 
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
@@ -62,6 +63,7 @@
         let cap = null;            // opencv video capture stream
         let src = null;            // opencv source mat (input)
         let dst = null;            // opencv destination mat (result)
+        let crops = null;
         let startFrame = 0;        // frame where initial hp bar spawns
         let startTime = 0;
         let iconRect = null;
@@ -121,6 +123,8 @@
                 dst.delete();
                 iconCrop.delete();
                 outputLog.innerText = log;
+                cv.imshow(cropsOutput, crops);
+                crops.delete();
                 return;
             }
 
@@ -141,6 +145,8 @@
                         console.log(iconData);
                         iconRect = new cv.Rect(iconData.x, iconData.y, iconData.w, iconData.h);
                         iconCrop = src.roi(iconRect);
+                        crops = new cv.Mat();
+                        crops = iconCrop.clone();
                         icon.width = iconData.width;
                         icon.height = iconData.height;
                         cv.imshow('iconOutput', iconCrop);
@@ -155,6 +161,13 @@
                 } else {
                     counterDisplay.innerText = frameCounter;
                     iconCrop = src.roi(iconRect);
+                    
+                    let cropsVector = new cv.MatVector();
+                    cropsVector.push_back(crops);
+                    cropsVector.push_back(iconCrop);
+                    cv.hconcat(cropsVector, crops);
+                    cropsVector.delete();
+                    
                     cv.imshow('iconOutput', iconCrop);
                     const ocr_text = await preprocessAndOCR(icon);
                     //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
