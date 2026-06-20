@@ -142,10 +142,10 @@
                         console.log(iconData);
                         iconRect = new cv.Rect(iconData.x, iconData.y, iconData.w, iconData.h);
                         iconCrop = src.roi(iconRect);
-                        preprocessAndOCR(iconCrop);
                         icon.width = iconData.width;
                         icon.height = iconData.height;
                         cv.imshow('iconOutput', iconCrop);
+                        preprocessAndOCR(icon);
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
@@ -163,19 +163,20 @@
             }
         }
 
-        async function preprocessAndOCR(src) {
+        async function preprocessAndOCR(imgElement) {
             statusText.innerText = 'Preprocessing image with OpenCV...';
-            let dst = new cv.Mat();
+            let source = cv.imread(imgElement);
+            let dest = new cv.Mat();
 
             // filter high white
-            src = filterImage(src, [250,250,250,128], [5,5,5,128])
-            cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-            cv.adaptiveThreshold(src, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
-            cv.imshow('iconOutput', dst);
+            //src = filterImage(src, [250,250,250,128], [5,5,5,128])
+            cv.cvtColor(source, source, cv.COLOR_RGBA2GRAY, 0);
+            cv.adaptiveThreshold(source, dest, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
+            cv.imshow('iconOutput', dest);
 
             // Clean up memory from WebAssembly heap
-            dst.delete();
-
+            dest.delete();
+            statusText.innerText = 'Sending image to tesseract...';
             try {
                 const result = await Tesseract.recognize(iconOutput, 'eng', {
                     logger: m => {
