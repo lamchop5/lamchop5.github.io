@@ -145,7 +145,7 @@
                         icon.width = iconData.width;
                         icon.height = iconData.height;
                         cv.imshow('iconOutput', iconCrop);
-                        preprocessAndOCR(icon);
+                        const ocr_text = await preprocessAndOCR(icon);
                         video.pause();
                         video.playbackRate = 4.0;
                         video.play();
@@ -155,7 +155,8 @@
                 } else {
                     iconCrop = src.roi(iconRect);
                     cv.imshow('iconOutput', iconCrop);
-                    log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*100)/100 +", ocr: " + preprocessAndOCR(icon);
+                    const ocr_text = await preprocessAndOCR(icon);
+                    log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*100)/100 +", ocr: " + ocr_text;
                     requestAnimationFrame(processVideo);                
                 }
                 
