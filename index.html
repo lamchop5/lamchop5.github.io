@@ -172,7 +172,11 @@
             let dest = new cv.Mat();
 
             // filter high white
-            dest = filterImage(source, [240,240,240,128], [15,15,15,128])
+            dest = filterImage(source, [245,245,245,128], [10,10,10,128])
+            cv.threshold(dest, dest, 127, 255, cv.THRESH_BINARY);
+            let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+            let anchor = new cv.Point(-1, -1); // Anchor at the center
+            cv.dilate(dest,dest,kernel,anchor,cv.BORDER_CONSTANT,cv.morphologyDefaultBorderValue());
             //cv.cvtColor(source, source, cv.COLOR_RGBA2GRAY, 0);
             //cv.adaptiveThreshold(source, dest, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
             cv.imshow('iconOutput', dest);
@@ -192,6 +196,7 @@
 
                 //statusText.innerText = 'OCR Complete!';
                 //outputText.innerText = result.data.text || "[No text detected]";
+                source.delete()
                 return result.data.text || "[No text detected]";
             } catch (error) {
                 console.error(error);
