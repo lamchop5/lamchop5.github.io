@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Load Tesseract.js from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7" charset="utf-8"></script>
     <title>OpenCV.js Video Processor</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; text-align: center; }
+        body { font-family: sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; text-align: center;}
+        .axis path, .axis line { stroke: #555; }
+        .axis text { fill: #aaa; font-size: 12px; }
         
         .container { margin-top: 20px; }
         canvas { border: 1px solid #ccc; max-width: 100%; }
@@ -18,7 +21,7 @@
 
     <h2>Chaos Belt Damage Scanner</h2>
     <p id="loading">Loading OpenCV.js...</p>
-
+    <div id="chart"></div>
     <!-- File Input -->
     <input type="file" id="videoUpload" accept="video/*" disabled>
     
@@ -74,7 +77,6 @@
         let loadingText = document.getElementById('loading');
         let statusText = document.getElementById('statusDisplay');
         let outputText = document.getElementById('outputDisplay');
-        let log = null;
         // Initialize your framework counter variable
         let frameCounter = 0;
         const counterDisplay = document.getElementById('frameCount');
@@ -88,6 +90,8 @@
         let iconCrop = null;
         let iconData={x:null, y:null, w:null, h:null};
         let kernel = null;
+
+        const data = [];
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -142,6 +146,7 @@
                 src.delete();
                 dst.delete();
                 iconCrop.delete();
+                graph_chart(data);
                 return;
             }
 
@@ -193,6 +198,7 @@
                     newLogRow.appendChild(logIcon)
                     newLogRow.appendChild(ocrpreprocessIcon)
                     if (ocr_data.confidence >= 80) {
+                        data.push({ x: Math.round((video.currentTime-startTime)*1000)/1000, y: parseFloat(ocr_data.text) })
                         newLogRow.style.color = 'green';
                     } else {
                         newLogRow.style.color = 'crimson';
@@ -257,6 +263,93 @@
             } catch (error) {
                 console.error(error);
             }
+        }
+
+        function graph_chart(data) {
+            // Dimensions
+            const margin = { top: 30, right: 30, bottom: 50, left: 50 };
+            const width = 700 - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            // Append SVG
+            const svg = d3.select("#chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                //.transform(`translate(${margin.left},${margin.top})`);
+
+            // 2. Scales & Axes
+            const xScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.x))
+                .range([0, width]);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.y)])
+                .range([height, 0]);
+
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0, ${height})`)
+                .call(d3.axisBottom(xScale));
+
+            svg.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(yScale));
+
+            // 3. Define Gradients in <defs>
+            const defs = svg.append("defs");
+
+            // Color configurations mapped to the Y-axis value bounds
+            const colorMin = "#3a86ff"; // Cold / Low Value (Blue)
+            const colorMax = "#ff006e"; // Hot / High Value (Red)
+
+            // LINE STROKE GRADIENT (Vertical: shifts color relative to Y position)
+            const lineGradient = defs.append("linearGradient")
+                .attr("id", "line-gradient")
+                .attr("gradientUnits", "userSpaceOnUse")
+                .attr("x1", 0).attr("y1", yScale(0))
+                .attr("x2", 0).attr("y2", yScale(d3.max(data, d => d.y)));
+
+            lineGradient.append("stop").attr("offset", "0%").attr("stop-color", colorMin);
+            lineGradient.append("stop").attr("offset", "100%").attr("stop-color", colorMax);
+
+            // AREA FILL GRADIENT (Vertical: fades down to transparent background)
+            const areaGradient = defs.append("linearGradient")
+                .attr("id", "area-gradient")
+                .attr("gradientUnits", "userSpaceOnUse")
+                .attr("x1", 0).attr("y1", yScale(0))
+                .attr("x2", 0).attr("y2", yScale(d3.max(data, d => d.y)));
+
+            areaGradient.append("stop").attr("offset", "0%").attr("stop-color", colorMin).attr("stop-opacity", 0.0);
+            areaGradient.append("stop").attr("offset", "100%").attr("stop-color", colorMax).attr("stop-opacity", 0.4);
+
+            // 4. Generators
+            const lineGenerator = d3.line()
+                .x(d => xScale(d.x))
+                .y(d => yScale(d.y))
+                .curve(d3.curveMonotoneX); // Smooth interpolation
+
+            const areaGenerator = d3.area()
+                .x(d => xScale(d.x))
+                .y0(height) // Baseline bottom boundary
+                .y1(d => yScale(d.y))
+                .curve(d3.curveMonotoneX);
+
+            // 5. Draw Shapes
+            // Draw Area First (so the line sits cleanly on top)
+            svg.append("path")
+                .datum(data)
+                .attr("d", areaGenerator)
+                .style("fill", "url(#area-gradient)");
+
+            // Draw Line
+            svg.append("path")
+                .datum(data)
+                .attr("d", lineGenerator)
+                .style("fill", "none")
+                .style("stroke", "url(#line-gradient)")
+                .style("stroke-width", 4);
         }
     </script>
 
