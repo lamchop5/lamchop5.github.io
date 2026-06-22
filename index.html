@@ -230,7 +230,7 @@
             // 4. Apply dilation
             cv.dilate(dest, dilated, kernel, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
             cv.bitwise_not(dilated, dilated);
-            cv.copyMakeBorder(dilated, dilated, 50, 50, 50, 50, cv.BORDER_CONSTANT, value = new cv.Scalar(255));
+            cv.copyMakeBorder(dilated, dilated, 20,20,20,20, cv.BORDER_CONSTANT, value = new cv.Scalar(255));
             cv.imshow('iconOutput', dilated);
 
             //if (crops==null) {
