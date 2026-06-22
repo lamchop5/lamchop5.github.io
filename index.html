@@ -31,9 +31,30 @@
     <div><canvas id="iconOutput" width="50" height="50"></canvas></div>
     <!-- Counter display -->
     <p>Current Frame: <span id="frameCount">0</span></p>
-    <p id="outputLog"></p>
-    <canvas id="cropsOutput"></canvas>
-
+    <div id="outputLog"></div>
+    <div><canvas id="cropsOutput"></canvas></div>
+    <table id="logTable">
+        <thead>
+            <th>original</th>
+            <th>preprocess</th>
+            <th>ocr text</th>
+            <th>conf</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td><canvas width="50" height="20"></canvas></td>
+                <td><canvas width="50" height="20"></canvas></td>
+                <td>260%</td>
+                <td style="color:green">90</td>
+            </tr>
+            <tr>
+                <td><canvas width="50" height="20"></canvas></td>
+                <td><canvas width="50" height="20"></canvas></td>
+                <td><span>lsdi</span></td>
+                <td style="color: red">22</td>
+            </tr>
+        </tbody>
+    </table>
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
         (function() {
@@ -67,6 +88,7 @@
         let iconRect = null;
         let iconCrop = null;
         let iconData={x:null, y:null, w:null, h:null};
+        let kernel = null;
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -75,6 +97,7 @@
                 loadingText.innerText = "OpenCV.js is ready! Upload a video.";
                 loadingText.style.color = "green";
                 fileInput.disabled = false;
+                kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3))
             }        
         }
 
@@ -120,10 +143,8 @@
                 src.delete();
                 dst.delete();
                 iconCrop.delete();
-                outputLog.innerText = log;
-                cv.cvtColor(crops, crops, cv.COLOR_RGBA2GRAY, 0);
-                cv.threshold(crops, crops, 245, 255, cv.THRESH_BINARY);
-                cv.imshow(cropsOutput, crops);
+                //outputLog.innerText = log;
+                //await cv.imshow(cropsOutput, crops);
                 crops.delete();
                 return;
             }
@@ -145,11 +166,10 @@
                         console.log(iconData);
                         iconRect = new cv.Rect(iconData.x, iconData.y, iconData.w, iconData.h);
                         iconCrop = src.roi(iconRect);
-                        crops = new cv.Mat();
-                        crops = iconCrop.clone();
                         icon.width = iconData.width;
                         icon.height = iconData.height;
                         cv.imshow('iconOutput', iconCrop);
+                        iconCrop.delete();
                         const ocr_text = await preprocessAndOCR(icon);
                         video.pause();
                         video.playbackRate = 3.0;
@@ -160,18 +180,28 @@
                     return;
                 } else {
                     counterDisplay.innerText = frameCounter;
-                    iconCrop = src.roi(iconRect);
-                    
-                    let cropsVector = new cv.MatVector();
-                    cropsVector.push_back(crops);
-                    cropsVector.push_back(iconCrop);
-                    cv.vconcat(cropsVector, crops);
-                    cropsVector.delete();
-                    
+                    iconCrop = src.roi(iconRect);                    
                     cv.imshow('iconOutput', iconCrop);
-                    const ocr_text = await preprocessAndOCR(icon);
-                    //log += "\nframe " + frameCounter + ": " + Math.round((video.currentTime-startTime)*1000)/1000 +"s, ocr: " + ocr_text;
-                    log += "\nencounter time(s): " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_text;
+
+                    const logIcon = document.createElement("canvas")
+                    const ocrpreprocessIcon = document.createElement("canvas")
+                    const newLogRow = document.createElement("div");
+
+                    const ocr_data = await preprocessAndOCR(icon, ocrpreprocessIcon);
+                    logIcon.width = iconData.w
+                    logIcon.height = iconData.h
+                    cv.imshow(logIcon, iconCrop);
+                    //const logIconCtx = logIcon.getContext('2d');
+                    //logIconCtx.drawImage(document.getElementById('iconOutput'), 0, 0);
+                    newLogRow.textContent ="encounter time: " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_data.text;
+                    newLogRow.appendChild(logIcon)
+                    newLogRow.appendChild(ocrpreprocessIcon)
+                    if (ocr_data.confidence >= 80) {
+                        newLogRow.style.color = 'green';
+                    } else {
+                        newLogRow.style.color = 'crimson';
+                    }
+                    outputLog.appendChild(newLogRow);
                     //setTimeout(processVideo,0,1);
                     requestAnimationFrame(processVideo);                
                 }
@@ -182,21 +212,42 @@
             }
         }
 
-        async function preprocessAndOCR(imgElement) {
+        async function preprocessAndOCR(imgElement, preprocessIcon) {
             //statusText.innerText = 'Preprocessing image with OpenCV...';
             let source = cv.imread(imgElement);
             let dest = new cv.Mat();
+            let dsize = new cv.Size(source.cols * 3, source.rows * 3);
+            cv.resize(source, dest, dsize, 0, 0, cv.INTER_CUBIC);
 
-            // filter high white
-            dest = filterImage(source, [245,245,245,128], [10,10,10,128])
-            //cv.threshold(dest, dest, 127, 255, cv.THRESH_BINARY);
-            //cv.cvtColor(source, source, cv.COLOR_RGBA2GRAY, 0);
-            //cv.adaptiveThreshold(source, dest, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
-            cv.imshow('iconOutput', dest);
+            dest = filterImage(dest, [245,245,245,128], [10,10,10,128])
+            cv.bitwise_not(dest, dest);
+            let dilated = new cv.Mat();
+            
+            let kernelSize = new cv.Size(7, 7);
+            let kernel = cv.getStructuringElement(cv.MORPH_RECT, kernelSize);
+            let anchor = new cv.Point(-1, -1); // Center of the kernel
 
-            // Clean up memory from WebAssembly heap
-            dest.delete();
-            //statusText.innerText = 'Sending image to tesseract...';
+            // 4. Apply dilation
+            cv.dilate(dest, dilated, kernel, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            cv.bitwise_not(dilated, dilated);
+            cv.copyMakeBorder(dilated, dilated, 50, 50, 50, 50, cv.BORDER_CONSTANT, value = new cv.Scalar(255));
+            cv.imshow('iconOutput', dilated);
+
+            //if (crops==null) {
+            //    crops = dilated.clone()
+            //} else {
+            //    let cropsVector = new cv.MatVector();
+            //    cropsVector.push_back(crops);
+            //    cropsVector.push_back(dilated);
+            //    cv.vconcat(cropsVector, crops);
+            //    cropsVector.delete();
+            //}
+            if (preprocessIcon) {
+                preprocessIcon.width = dilated.cols
+                preprocessIcon.height = dilated.rows
+                cv.imshow(preprocessIcon, dilated);
+            }
+
             try {
                 const result = await Tesseract.recognize(iconOutput, 'eng', {
                     logger: m => {
@@ -207,13 +258,15 @@
                     }
                 });
 
-                //statusText.innerText = 'OCR Complete!';
-                //outputText.innerText = result.data.text || "[No text detected]";
-                source.delete()
-                return result.data.text || "[No text detected]";
+                // Clean up memory from WebAssembly heap
+                dilated.delete();
+                dest.delete();
+                kernel.delete();
+                source.delete();
+
+                return result.data || "[No text detected]";
             } catch (error) {
                 console.error(error);
-                //statusText.innerText = 'OCR Failed.';
             }
         }
     </script>
