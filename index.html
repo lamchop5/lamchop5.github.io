@@ -32,7 +32,7 @@
     <!-- Counter display -->
     <p>Current Frame: <span id="frameCount">0</span></p>
     <div id="outputLog"></div>
-    <div><canvas id="cropsOutput"></canvas></div>
+    <!--
     <table id="logTable">
         <thead>
             <th>original</th>
@@ -54,7 +54,8 @@
                 <td style="color: red">22</td>
             </tr>
         </tbody>
-    </table>
+    </table> 
+    -->
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
         (function() {
@@ -143,9 +144,6 @@
                 src.delete();
                 dst.delete();
                 iconCrop.delete();
-                //outputLog.innerText = log;
-                //await cv.imshow(cropsOutput, crops);
-                crops.delete();
                 return;
             }
 
@@ -191,8 +189,6 @@
                     logIcon.width = iconData.w
                     logIcon.height = iconData.h
                     cv.imshow(logIcon, iconCrop);
-                    //const logIconCtx = logIcon.getContext('2d');
-                    //logIconCtx.drawImage(document.getElementById('iconOutput'), 0, 0);
                     newLogRow.textContent ="encounter time: " + Math.round((video.currentTime-startTime)*1000)/1000 +", ocr: " + ocr_data.text;
                     newLogRow.appendChild(logIcon)
                     newLogRow.appendChild(ocrpreprocessIcon)
