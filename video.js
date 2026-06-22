@@ -1,28 +1,3 @@
-// x mapping for Alibaba-PuHuiTi-Heavy.ttf
-const characterTableEng = [
-    { min: 8, max: 28, char: '0' },
-    { min: 70, max: 90, char: '1' },
-    { min: 130, max: 150, char: '2' },
-    { min: 190, max: 210, char: '3' },
-    { min: 251, max: 271, char: '4' },
-    { min: 311, max: 331, char: '5' },
-    { min: 372, max: 392, char: '6' },
-    { min: 433, max: 453, char: '7' },
-    { min: 493, max: 513, char: '8' },
-    { min: 553, max: 573, char: '9' },
-    { min: 613, max: 633, char: 'P' },
-    { min: 678, max: 698, char: 'T' },
-    { min: 737, max: 757, char: 'B' },
-    { min: 855, max: 875, char: 'i' },
-    { min: 797, max: 817, char: 'Q' },
-    { min: 889, max: 909, char: '.' }
-];
-
-function getChar(input) {
-    // helper function to lookup character mapping from templatematching results
-    const entry = characterTableEng.find(range => input >= range.min && input <= range.max);
-    return entry ? entry.char : null; // Returns null if no range is found
-}
 
 function filterImage(image, color, threshold) {
     // filter image by color +/- thresh, returns mask
@@ -103,9 +78,9 @@ function findCbeltIcon(image){
         // if width and height within 10 pixels
         if (Math.abs(rect.width-rect.height)<10 && rect.width>50 && rect.height>50) {
             if (rect.y < max_y) {
-                let top = (rect.y+(rect.height*.725)) | 0
+                let top = (rect.y+(rect.height*.73)) | 0
                 let height = (rect.height*.35) | 0
-                let left = (rect.x+(rect.width*0.125)) | 0
+                let left = (rect.x+(rect.width*0.13)) | 0
                 let width = (rect.width*.95) | 0
                 retval = {x:left, y:top, w:width, h:height}
             }
