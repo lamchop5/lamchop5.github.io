@@ -79,7 +79,7 @@ function findCbeltIcon(image){
             if (rect.y < max_y) {
                 let top = (rect.y+(rect.height*.725)) | 0
                 let left = (rect.x+(rect.width*.225)) | 0
-                let height = (rect.height*.3) | 0
+                let height = (rect.height*.325) | 0
                 let width = (rect.width*.825) | 0
                 retval = {x:left, y:top, w:width, h:height}
             }
