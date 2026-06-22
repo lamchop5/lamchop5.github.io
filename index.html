@@ -219,7 +219,7 @@
             let dsize = new cv.Size(source.cols * 3, source.rows * 3);
             cv.resize(source, dest, dsize, 0, 0, cv.INTER_CUBIC);
 
-            dest = filterImage(dest, [245,245,245,128], [10,10,10,128])
+            dest = filterImage(dest, [245,245,235,128], [10,10,20,128])
             cv.bitwise_not(dest, dest);
             let dilated = new cv.Mat();
             
@@ -230,33 +230,28 @@
             // 4. Apply dilation
             cv.dilate(dest, dilated, kernel, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
             cv.bitwise_not(dilated, dilated);
-            cv.copyMakeBorder(dilated, dilated, 20,20,20,20, cv.BORDER_CONSTANT, value = new cv.Scalar(255));
+            cv.copyMakeBorder(dilated, dilated, 20, 20, 20, 20, cv.BORDER_CONSTANT, value = new cv.Scalar(255));
             cv.imshow('iconOutput', dilated);
 
-            //if (crops==null) {
-            //    crops = dilated.clone()
-            //} else {
-            //    let cropsVector = new cv.MatVector();
-            //    cropsVector.push_back(crops);
-            //    cropsVector.push_back(dilated);
-            //    cv.vconcat(cropsVector, crops);
-            //    cropsVector.delete();
-            //}
-            if (preprocessIcon) {
-                preprocessIcon.width = dilated.cols
-                preprocessIcon.height = dilated.rows
-                cv.imshow(preprocessIcon, dilated);
-            }
+            dsize = new cv.Size(source.cols, source.rows);
+            cv.resize(dilated, dest, dsize, 0, 0, cv.INTER_AREA);
+            
 
             try {
-                const result = await Tesseract.recognize(iconOutput, 'eng', {
-                    logger: m => {
-                        if(m.status === 'recognizing') {
-                            //statusText.innerText = `OCR Progress: ${Math.round(m.progress * 100)}%`;
-                            pass;
-                        }
-                    }
-                });
+                const result = await Tesseract.recognize(iconOutput, 'eng');
+
+                if (result.data.confidence < 90){
+                    console.log("confidence < 90, ocr on source")
+                    const result = await Tesseract.recognize(imgElement, 'eng')
+                    console.log("source ocr: " + result.data.text)
+                    preprocessIcon.width = source.cols;
+                    preprocessIcon.height = source.rows;
+                    cv.imshow(preprocessIcon, source);
+                } else if (preprocessIcon) {
+                    preprocessIcon.width = dest.cols;
+                    preprocessIcon.height = dest.rows;
+                    cv.imshow(preprocessIcon, dest);
+                }
 
                 // Clean up memory from WebAssembly heap
                 dilated.delete();
