@@ -24,6 +24,14 @@
     <div id="chart"></div>
     <!-- File Input -->
     <input type="file" id="videoUpload" accept="video/*" disabled>
+    <label for="speedDropdown">Playback Speed:</label>
+    <select id="speedDropdown">
+        <option value="1">1x</option>
+        <option value="2">2x</option>
+        <option value="3" selected>2.5x</option>
+        <option value="4">3x</option>
+        <option value="5">4x</option>
+    </select>
     
     <div class="container">
         <!-- Hidden video element used as the data source -->
@@ -35,7 +43,7 @@
     <!-- Counter display -->
     <p>Current Frame: <span id="frameCount">0</span></p>
     <div id="outputLog"></div>
-    
+
     <!-- Script to handle Video and OpenCV.js Logic -->
     <script>
         (function() {
@@ -124,7 +132,16 @@
                 src.delete();
                 dst.delete();
                 iconCrop.delete();
-                graph_chart(data);
+                const reducedData = Object.values(data.reduce((acc, curr) => {
+                    const wholeSecond = Math.floor(curr.x);
+                    if (!acc[wholeSecond]) {
+                        acc[wholeSecond] = { x: wholeSecond, y: curr.y };
+                    }
+                    return acc;
+                }, {}));
+                console.log(reducedData);
+                //graph_chart(data);
+                graph_chart(reducedData);
                 return;
             }
 
@@ -152,7 +169,7 @@
                         iconCrop.delete();
                         const ocr_text = await preprocessAndOCR(icon);
                         video.pause();
-                        video.playbackRate = 3.0;
+                        video.playbackRate = parseFloat(document.getElementById("speedDropdown").value);
                         video.play();
                     }
                     //setTimeout(processVideo,0,2);
@@ -243,10 +260,23 @@
             }
         }
 
+        const getAverageByRange = (arr, min, max) => {
+            // Filter where first element is between min and max (inclusive)
+            const filtered = arr.filter(row => row.x >= min && row.x <= max);
+
+            if (filtered.length === 0) return 0; // Prevent division by zero
+
+            // Sum up the values at the specified target index
+            const sum = filtered.reduce((acc, row) => acc + row.y, 0);
+
+            // Return the average
+            return sum / filtered.length;
+        };
+
         function graph_chart(data) {
             // Dimensions
             const margin = { top: 30, right: 30, bottom: 50, left: 50 };
-            const width = 700 - margin.left - margin.right;
+            const width = 1200 - margin.left - margin.right;
             const height = 400 - margin.top - margin.bottom;
 
             // Append SVG
@@ -255,7 +285,7 @@
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
-                //.transform(`translate(${margin.left},${margin.top})`);
+                .attr("transform",`translate(${margin.left},${margin.top})`);
 
             // 2. Scales & Axes
             const xScale = d3.scaleLinear()
@@ -263,7 +293,8 @@
                 .range([0, width]);
 
             const yScale = d3.scaleLinear()
-                .domain([0, d3.max(data, d => d.y)])
+                //.domain([0, d3.max(data, d => d.y)])
+                .domain([70, d3.max(data, d => d.y)])
                 .range([height, 0]);
 
             svg.append("g")
@@ -286,7 +317,7 @@
             const lineGradient = defs.append("linearGradient")
                 .attr("id", "line-gradient")
                 .attr("gradientUnits", "userSpaceOnUse")
-                .attr("x1", 0).attr("y1", yScale(0))
+                .attr("x1", 0).attr("y1", yScale(70))
                 .attr("x2", 0).attr("y2", yScale(d3.max(data, d => d.y)));
 
             lineGradient.append("stop").attr("offset", "0%").attr("stop-color", colorMin);
@@ -328,7 +359,126 @@
                 .style("fill", "none")
                 .style("stroke", "url(#line-gradient)")
                 .style("stroke-width", 1);
-        }
+
+
+            const highlightGroup = svg.append("g")
+            .attr("class", "highlight-intervals");
+
+        
+            // highlight intervals
+            const intervals = [
+                { start: 2, end: 12, avg: getAverageByRange(data,2,11) },
+                { start: 22, end: 32, avg: getAverageByRange(data,22,31) },
+                { start: 42, end: 52, avg: getAverageByRange(data,42,51) },
+                { start: 62, end: 72, avg: getAverageByRange(data,62,71) },
+                { start: 82, end: 92, avg: getAverageByRange(data,82,91) },
+                { start: 102, end: 112, avg: getAverageByRange(data,102,111) },
+                { start: 122, end: 132, avg: getAverageByRange(data,122,131) },
+                { start: 142, end: 152, avg: getAverageByRange(data,142,151) },
+                { start: 162, end: 172, avg: getAverageByRange(data,162,171) }
+            ]
+
+            const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("opacity", 0);
+
+            highlightGroup.selectAll("rect")
+            .data(intervals)
+            .join("rect")
+                .attr("x", d => xScale(d.start))
+                .attr("y", d => yScale(d.avg)) // Starts at the top of the chart (or margin.top)
+                .attr("width", d => xScale(d.end) - xScale(d.start))
+                //.attr("height", height) // Extends the full height of the chart area
+                .attr("height", d => height - yScale(d.avg)) // Extends the full height of the chart area
+                .attr("fill", "#ffcccb") // Highlight color
+                .attr("opacity", 0.10)    // Adjust transparency so chart lines remain visible
+                .attr("pointer-events", "all") // Ensures tooltips can pass through the highlights
+                .on("mousemove", function(event) {
+                    // Get mouse x-coordinate and map to data space
+                    const [xCoord] = d3.pointer(event, this);
+                    const mouseX = xScale.invert(xCoord);
+
+                    // Find which interval is currently being hovered
+                    const activeInterval = intervals.find(d => mouseX >= d.start && mouseX < d.end);
+
+                    if (activeInterval) {
+                    // Highlight the intervals (e.g., using classes)
+                    d3.selectAll(".interval-bar").classed("highlight", d => d === activeInterval);
+
+                    // Show tooltip with interval average
+                    tooltip.transition().duration(200).style("opacity", 0.9);
+                    tooltip.html(`Interval: ${activeInterval.start}-${activeInterval.end}<br/>Avg: ${activeInterval.avg.toFixed(1)}`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                    }
+                })
+                .on("mouseout", function() {
+                    d3.selectAll(".interval-bar").classed("highlight", false);
+                    tooltip.transition().duration(500).style("opacity", 0);
+                });
+
+            // This allows to find the closest X index of the mouse:
+            var bisect = d3.bisector(function(d) { return d.x; }).left;
+
+            // Create the circle that travels along the curve of chart
+            var focus = svg
+                .append('g')
+                .append('circle')
+                .style("fill", "none")
+                .attr("stroke", "white")
+                .attr('r', 4.5)
+                .style("opacity", 0)
+
+            // Create the text that travels along the curve of chart
+            var focusText = svg
+                .append('g')
+                .append('text')
+                .style("opacity", 0)
+                .attr("fill", "white")
+                .attr("text-anchor", "left")
+                .attr("alignment-baseline", "middle")
+
+            // Create a rect on top of the svg area: this rectangle recovers mouse position
+            svg
+                .append('rect')
+                .style("fill", "none")
+                .style("pointer-events", "all")
+                .attr('width', width)
+                .attr('height', height)
+                .on('mouseover', mouseover)
+                .on('mousemove', mousemove)
+                .on('mouseout', mouseout);
+
+
+            // What happens when the mouse move -> show the annotations at the right positions.
+            function mouseover() {
+                focus.style("opacity", 1)
+                focusText.style("opacity",1)
+            }
+
+            function mousemove() {
+                // recover coordinate we need
+                const [xCoord] = d3.pointer(event, this);
+                var x0 = xScale.invert(xCoord);
+                var i = bisect(data, x0, 1);
+                selectedData = data[i]
+                console.log("data[i]: ", data[i])
+                focus
+                .attr("cx", xScale(selectedData.x))
+                .attr("cy", yScale(selectedData.y))
+                focusText
+                .html(selectedData.x + "s: " + selectedData.y +"%")
+                .attr("x", xScale(selectedData.x)+15)
+                .attr("y", yScale(selectedData.y))
+                }
+            function mouseout() {
+                focus.style("opacity", 0)
+                focusText.style("opacity", 0)
+            }
+
+
+        } // end chart_data()
     </script>
 
     <!-- Async load OpenCV.js from a reliable CDN -->
