@@ -89,7 +89,7 @@
 
         //let table = new DataTable('#dataTable');
 
-        const data = [];
+        const data = [];        // raw data, seconds  = x.xxx
 
         function downloadJSON(dataObject, filename = 'data.json') {
             // 1. Convert the JavaScript object into a formatted JSON string
@@ -180,14 +180,29 @@
 
                 const laserPercents = [];
                 const cooldownPercents = [];
+                const intervalCounts = {};
+                const droppedFrames =[]
 
                 for (const row of reducedData) {
                     if (row.x>=2) {
-                        const time_mod_20 = (row.x-2) % 20
-                        if (time_mod_20 < 10) {laserPercents.push(row.y)}
-                        else {cooldownPercents.push(row.y)}
+                        const time_mod_20 = (row.x-2) % 20;
+                        if (time_mod_20 < 10) {laserPercents.push(row.y);}
+                        else {cooldownPercents.push(row.y);}
+
+                        const dmgPercent = (Math.floor(row.y/10)*10);
+                        if (dmgPercent in intervalCounts) {intervalCounts[dmgPercent]++}
+                        else {intervalCounts[dmgPercent]=1}
                     }
                 }
+                console.log(intervalCounts)
+
+                for (let i = 0; i < 182; i++) {
+                    if (!reducedData.some(row => row.x === i)) {
+                        droppedFrames.push(i)
+                    } 
+                }
+
+                console.log("droppedFrames: " + droppedFrames)
 
                 const combined = [...laserPercents, ...cooldownPercents];
                 const avgBelt = Math.floor(combined.reduce((sum, num) => sum + num, 0) / combined.length *1000)/1000;
@@ -195,7 +210,7 @@
                 const nonlaserBelt = Math.floor(cooldownPercents.reduce((sum, num) => sum + num, 0) / cooldownPercents.length*1000)/1000;
 
                 const jsonString = JSON.stringify(data, null, 4);
-                results.innerText = "Average Belt%: " + avgBelt +"\nAverage Belt% (Laser Charging): " + laserBelt +"\nAverage Belt% (Not Charging): " + nonlaserBelt +"\n\n\n";
+                results.innerText = "\nAverage Belt%: " + avgBelt +"\n\nAverage Belt% (Laser Charging): " + laserBelt +"\n\nAverage Belt% (Not Charging): " + nonlaserBelt +"\n\nMissing Seconds(Dropped Frames): " + droppedFrames.length + "/182\n\n\n\n";
 
                 const downloadDiv = document.getElementById('download');
                 const downloadButton = document.createElement('button');
