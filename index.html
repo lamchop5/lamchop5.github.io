@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Load Tesseract.js from CDN -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7" charset="utf-8"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>    
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
+    
     <title>OpenCV.js Video Processor</title>
     <style>
         body { font-family: sans-serif; background-color: #1a1a1a; color: #fff; padding: 20px; text-align: center;}
@@ -22,8 +26,13 @@
     <h2>Chaos Belt Damage Scanner</h2>
     <p id="loading">Loading OpenCV.js...</p>
     <div id="chart"></div>
+    <div id="download"></div>
+    <div id="results"></div>
+    
+    <!-- <table id="dataTable"></table> -->
+
     <!-- File Input -->
-    <input type="file" id="videoUpload" accept="video/*" disabled>
+    <input type="file" id="videoUpload" accept="video/*" disabled>    
     <label for="speedDropdown">Playback Speed:</label>
     <select id="speedDropdown">
         <option value="1">1x</option>
@@ -63,6 +72,7 @@
         let loadingText = document.getElementById('loading');
         let statusText = document.getElementById('statusDisplay');
         let outputText = document.getElementById('outputDisplay');
+        let resultsElement = document.getElementById('results');
         // Initialize your framework counter variable
         let frameCounter = 0;
         const counterDisplay = document.getElementById('frameCount');
@@ -77,7 +87,33 @@
         let iconData={x:null, y:null, w:null, h:null};
         let kernel = null;
 
+        //let table = new DataTable('#dataTable');
+
         const data = [];
+
+        function downloadJSON(dataObject, filename = 'data.json') {
+            // 1. Convert the JavaScript object into a formatted JSON string
+            const jsonString = JSON.stringify(dataObject, null, 2);
+
+            // 2. Wrap the string inside a Blob with the proper JSON MIME type
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+
+            // 3. Create a temporary, localized DOM URL pointing to the Blob
+            const blobUrl = URL.createObjectURL(blob);
+
+            // 4. Create an invisible anchor ('a') element
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename; // Sets the native file saving destination name
+
+            // 5. Inject element to DOM, simulate click, and immediately sweep it
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // 6. Free up internal browser memory allocation by revoking the URL
+            URL.revokeObjectURL(blobUrl);
+        }
 
         // 1. Triggered when OpenCV.js is fully loaded and ready
         function onOpenCvReady() {
@@ -139,9 +175,39 @@
                     }
                     return acc;
                 }, {}));
-                console.log(reducedData);
                 //graph_chart(data);
                 graph_chart(reducedData);
+
+                const laserPercents = [];
+                const cooldownPercents = [];
+
+                for (const row of reducedData) {
+                    if (row.x>=2) {
+                        const time_mod_20 = (row.x-2) % 20
+                        if (time_mod_20 < 10) {laserPercents.push(row.y)}
+                        else {cooldownPercents.push(row.y)}
+                    }
+                }
+
+                const combined = [...laserPercents, ...cooldownPercents];
+                const avgBelt = Math.floor(combined.reduce((sum, num) => sum + num, 0) / combined.length *1000)/1000;
+                const laserBelt = Math.floor(laserPercents.reduce((sum, num) => sum + num, 0) / laserPercents.length*1000)/1000;
+                const nonlaserBelt = Math.floor(cooldownPercents.reduce((sum, num) => sum + num, 0) / cooldownPercents.length*1000)/1000;
+
+                const jsonString = JSON.stringify(data, null, 4);
+                results.innerText = "Average Belt%: " + avgBelt +"\nAverage Belt% (Laser Charging): " + laserBelt +"\nAverage Belt% (Not Charging): " + nonlaserBelt +"\n\n\n";
+
+                const downloadDiv = document.getElementById('download');
+                const downloadButton = document.createElement('button');
+                downloadButton.innerText = 'Download Data';
+                downloadButton.type = 'button'; // Explicitly set type to prevent accidental form submits
+                downloadButton.classList.add('btn-primary'); // Add CSS styling class
+
+                downloadButton.addEventListener('click', function() {
+                    downloadJSON(data,"data.json");
+                });
+                downloadDiv.appendChild(downloadButton);
+                //gen_datatable(reducedData);
                 return;
             }
 
@@ -479,6 +545,21 @@
 
 
         } // end chart_data()
+
+        function gen_datatable(data) {
+            const reducedData = [];
+            for (const row of data) {
+                const dmgInterval = Math.floor(row.y/10)
+                const index = reducedData.findIndex(subList => subList[0] === dmgInterval);
+                if (index == -1) {
+                    reducedData.push([dmgInterval, 1])
+                } else {
+                    reducedData[index][1]++
+                }
+            }
+            console.log(reducedData)
+            return reducedData;
+        }
     </script>
 
     <!-- Async load OpenCV.js from a reliable CDN -->
