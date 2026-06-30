@@ -75,7 +75,7 @@ function findCbeltIcon(image){
         // Get the bounding rectangle (x, y, w, h)
         let rect = cv.boundingRect(cnt);
         // if width and height within 10 pixels
-        if (Math.abs(rect.width-rect.height)<10 && rect.width>50 && rect.height>50) {
+        if (Math.abs(rect.width-rect.height)<10 && rect.width>50 && rect.height>50 && rect.y > (image.rows*.15)) {
             if (rect.y < max_y) {
                 let top = (rect.y+(rect.height*.725)) | 0
                 let left = (rect.x+(rect.width*.225)) | 0
