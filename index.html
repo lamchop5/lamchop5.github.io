@@ -474,7 +474,7 @@
                 //.attr("height", height) // Extends the full height of the chart area
                 .attr("height", d => height - yScale(d.avg)) // Extends the full height of the chart area
                 .attr("fill", "#ffcccb") // Highlight color
-                .attr("opacity", 0.10)    // Adjust transparency so chart lines remain visible
+                .attr("opacity", 0.20)    // Adjust transparency so chart lines remain visible
                 .attr("pointer-events", "all") // Ensures tooltips can pass through the highlights
                 .on("mousemove", function(event) {
                     // Get mouse x-coordinate and map to data space
