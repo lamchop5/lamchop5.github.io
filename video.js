@@ -40,7 +40,7 @@ function checkStart(image){
         let cnt = contours.get(i);
         // Get the bounding rectangle (x, y, w, h)
         let rect = cv.boundingRect(cnt);
-        if (rect.width>(image.cols*.8) && rect.height>10) {
+        if (rect.width>(image.cols*.9) && rect.height<(image.rows*.1)) {
             hpbar_found = true;
             break;
         }
